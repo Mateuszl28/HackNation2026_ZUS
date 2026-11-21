@@ -238,3 +238,21 @@ test("planer rodzicielskiego: limity – 9 tyg. ojca, pula, liczba części, jed
   const pool = planParental(c.input, [{ who: "mother", start: s, weeks: 32 }, { who: "father", start: "2028-06-01", weeks: 10 }]);
   assert.ok(pool.errors.some((e) => e.title.includes("Przekroczona pula")));
 });
+
+import { checkSecondTitle, totalBase } from "../src/calculator.ts";
+
+test("zbieg tytułów: etat + zlecenie z dobrowolnym chorobowym sumuje podstawy", () => {
+  const p = { title: "employment" as const, monthlyBase: 8000, secondTitle: { title: "mandate" as const, monthlyBase: 3000, voluntarySickness: true } };
+  assert.equal(totalBase(p), 9491.9); // 6903.20 + 2588.70
+  const r = calculate({ scenario: "birth", eventDate: "2027-01-01", children: 1, mother: p, father: { title: "none", monthlyBase: 0 }, plan: {} });
+  assert.equal(r.mother.base, 9491.9);
+  assert.ok(r.notices.some((n) => n.title.includes("zbieg tytułów")));
+});
+
+test("zbieg tytułów: etat ≥ minimalnego + działalność – zasiłek tylko z etatu", () => {
+  const p = { title: "employment" as const, monthlyBase: 8000, secondTitle: { title: "business" as const, monthlyBase: 5000, voluntarySickness: true } };
+  assert.equal(checkSecondTitle(p)!.counts, false);
+  assert.equal(totalBase(p), 6903.2);
+  const low = { title: "employment" as const, monthlyBase: 2000, secondTitle: { title: "business" as const, monthlyBase: 5000, voluntarySickness: true } };
+  assert.equal(checkSecondTitle(low)!.counts, true); // etat poniżej minimalnego – działalność obowiązkowa
+});

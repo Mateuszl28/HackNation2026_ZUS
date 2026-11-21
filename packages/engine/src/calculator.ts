@@ -20,6 +20,47 @@ export interface ParentInput {
   /** Zadłużenie składkowe (działalność). */
   contributionDebt?: number;
   age?: number;
+  /** Drugi tytuł ubezpieczenia (zbieg tytułów), np. etat + zlecenie u innego płatnika albo etat + działalność. */
+  secondTitle?: {
+    title: Exclude<InsuranceTitle, "none">;
+    monthlyBase: number;
+    /** Zgłoszenie do dobrowolnego ubezpieczenia chorobowego z tego tytułu. */
+    voluntarySickness?: boolean;
+    largeEmployer?: boolean;
+  };
+}
+
+export interface SecondTitleCheck {
+  counts: boolean;
+  base: number;
+  reason: string;
+}
+
+/**
+ * Zbieg tytułów: czy drugi tytuł daje prawo do zasiłku (ustawa systemowa – zbieg tytułów; ustawa zasiłkowa art. 61b).
+ * - etat (≥ minimalne wynagrodzenie) + działalność: z działalności brak obowiązkowych ubezpieczeń emerytalnego i rentowego
+ *   → dobrowolne chorobowe z działalności ustaje → zasiłek tylko z etatu,
+ * - etat (≥ minimalne) + zlecenie u innego płatnika: emerytalne/rentowe ze zlecenia dobrowolne → chorobowe tylko przy dobrowolnym zgłoszeniu,
+ * - pozostałe: tytuł liczy się, jeśli objęty chorobowym (obowiązkowo – etat; dobrowolnie – zlecenie/działalność).
+ */
+export function checkSecondTitle(p: ParentInput, params: Params = DEFAULT_PARAMS): SecondTitleCheck | null {
+  const st = p.secondTitle;
+  if (!st || p.title === "none" || !st.monthlyBase) return null;
+  const empAboveMin = p.title === "employment" && p.monthlyBase >= params.minimumWage;
+  const base = computeBase({ title: st.title, monthlyBase: st.monthlyBase }, params);
+  if (st.title === "business" && empAboveMin)
+    return { counts: false, base: 0, reason: "Przy etacie z wynagrodzeniem co najmniej minimalnym działalność nie podlega obowiązkowo ubezpieczeniom emerytalnemu i rentowemu – dobrowolne chorobowe z działalności ustaje, zasiłek przysługuje tylko z etatu." };
+  if (st.title === "mandate" && empAboveMin && !st.voluntarySickness)
+    return { counts: false, base: 0, reason: "Zlecenie u innego płatnika przy etacie ≥ minimalnego wynagrodzenia: ubezpieczenia ze zlecenia są dobrowolne – bez dobrowolnego zgłoszenia do chorobowego zasiłek z tego tytułu nie przysługuje." };
+  if (st.title !== "employment" && !st.voluntarySickness)
+    return { counts: false, base: 0, reason: "Z tego tytułu ubezpieczenie chorobowe jest dobrowolne – bez zgłoszenia zasiłek z niego nie przysługuje." };
+  return { counts: true, base, reason: `Drugi tytuł (${st.title === "employment" ? "umowa o pracę" : st.title === "mandate" ? "zlecenie" : "działalność"}) daje prawo do zasiłku – podstawa ustalana osobno (${base.toFixed(2)} zł), zasiłek wypłaca płatnik/ZUS z tego tytułu.` };
+}
+
+/** Łączna podstawa ze wszystkich tytułów, które dają prawo do zasiłku. */
+export function totalBase(p: ParentInput, params: Params = DEFAULT_PARAMS) {
+  const second = checkSecondTitle(p, params);
+  return Math.round((computeBase(p, params) + (second?.counts ? second.base : 0)) * 100) / 100;
 }
 
 export interface CalcInput {
@@ -169,8 +210,8 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
   const children = Math.max(1, input.children || 1);
   const isBirth = input.scenario === "birth";
 
-  const mBase = computeBase(input.mother, params);
-  const fBase = computeBase(input.father, params);
+  const mBase = totalBase(input.mother, params);
+  const fBase = totalBase(input.father, params);
   const mIns = insuredOn(input.mother, ev);
   const fIns = insuredOn(input.father, ev);
 
@@ -330,6 +371,14 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
 
   if (!mother.eligible && !father.eligible)
     notices.push({ level: "info", title: "Świadczenie rodzicielskie", text: `Gdy żadne z rodziców nie ma prawa do zasiłku macierzyńskiego (np. bezrobotni, studenci, umowa o dzieło), przysługuje świadczenie rodzicielskie (${params.minBenefitMonthly} zł/mies.) – wniosek do gminy/MOPS (gov.pl).` });
+
+  for (const [who, p] of [["mother", input.mother], ["father", input.father]] as const) {
+    const sc = checkSecondTitle(p, params);
+    if (!sc) continue;
+    const name = who === "mother" ? "Matka" : "Ojciec";
+    notices.push({ level: sc.counts ? "info" : "warning", title: `${name}: zbieg tytułów ubezpieczenia`, text: sc.reason + (sc.counts ? " Poinformuj każdego płatnika o zasiłku z innych tytułów (art. 61b ust. 4)." : "") });
+    if (sc.counts) documents.push({ who, name: `Wniosek o zasiłek z drugiego tytułu (${p.secondTitle!.title === "employment" ? "pracodawca – wniosek o urlop" : "ZAM"}) + informacja o zasiłku z innych tytułów`, where: p.secondTitle!.largeEmployer && p.secondTitle!.title !== "business" ? "Drugi płatnik składek" : "ZUS (eZUS)", when: "Równolegle z wnioskiem z pierwszego tytułu" });
+  }
 
   // --- ryzyka ---
   for (const [who, p] of [["mother", input.mother], ["father", input.father]] as const) {

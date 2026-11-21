@@ -1,4 +1,4 @@
-import { addDays, calculate, computeBase, type CalcInput, type Notice, type Period, type Who } from "./calculator.ts";
+import { addDays, calculate, totalBase, type CalcInput, type Notice, type Period, type Who } from "./calculator.ts";
 import { DEFAULT_PARAMS, type Params } from "./params.ts";
 
 // Planer części urlopu rodzicielskiego (KP art. 182¹a–182¹e): podział między rodziców, części naprzemienne
@@ -49,7 +49,7 @@ export function planParental(input: CalcInput, parts: ParentalPart[], params: Pa
   const nt = params.parentalNonTransferableWeeks;
   const deadline = res.limits.parentalDeadline;
   const eligible = { mother: res.mother.eligible, father: res.father.eligible };
-  const base = { mother: computeBase(input.mother, params), father: computeBase(input.father, params) };
+  const base = { mother: totalBase(input.mother, params), father: totalBase(input.father, params) };
   const oneApp = !!input.plan.oneApplication && eligible.mother;
   const name = (w: Who) => (w === "mother" ? "Mama" : "Tata");
 

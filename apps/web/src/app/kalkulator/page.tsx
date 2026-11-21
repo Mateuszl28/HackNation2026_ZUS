@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { calculate, decodePlan, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
+import { calculate, checkSecondTitle, decodePlan, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, reportPlan, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
 import ParentalPlanner from "@/components/ParentalPlanner";
@@ -77,6 +77,25 @@ function ParentForm({ who, p, set, eventDate }: { who: string; p: ParentInput; s
           </div>
           {p.title !== "business" && <Check label="Płatnik zgłasza > 20 ubezpieczonych" hint="Wtedy zasiłek wypłaca pracodawca/zleceniodawca, nie ZUS" checked={!!p.largeEmployer} onChange={(b) => set({ ...p, largeEmployer: b })} />}
           {p.title === "business" && <Num label="Zadłużenie składkowe" value={p.contributionDebt ?? 0} step={10} suffix="zł" onChange={(n) => set({ ...p, contributionDebt: n })} />}
+          <Check label="Mam drugi tytuł ubezpieczenia" hint="Np. etat + zlecenie u innego płatnika albo etat + własna firma (zbieg tytułów)" checked={!!p.secondTitle} onChange={(b) => set({ ...p, secondTitle: b ? { title: "mandate", monthlyBase: 3000, voluntarySickness: true } : undefined })} />
+          {p.secondTitle && (
+            <div className="space-y-2 rounded-xl border border-dashed border-slate-300 p-3">
+              <label className="block">
+                <span className="label">Drugi tytuł</span>
+                <select className="input" value={p.secondTitle.title} onChange={(e) => set({ ...p, secondTitle: { ...p.secondTitle!, title: e.target.value as "employment" | "mandate" | "business" } })}>
+                  <option value="mandate">Umowa zlecenia (inny płatnik)</option>
+                  <option value="business">Działalność gospodarcza</option>
+                  <option value="employment">Druga umowa o pracę</option>
+                </select>
+              </label>
+              <Num label={p.secondTitle.title === "business" ? "Podstawa składek z działalności" : "Przychód brutto z drugiego tytułu"} value={p.secondTitle.monthlyBase} step={100} suffix="zł" onChange={(n) => set({ ...p, secondTitle: { ...p.secondTitle!, monthlyBase: n } })} />
+              {p.secondTitle.title !== "employment" && <Check label="Dobrowolne ubezpieczenie chorobowe z tego tytułu" checked={!!p.secondTitle.voluntarySickness} onChange={(b) => set({ ...p, secondTitle: { ...p.secondTitle!, voluntarySickness: b } })} />}
+              {(() => {
+                const sc = checkSecondTitle(p);
+                return sc && <p className={`rounded-lg p-2 text-xs ${sc.counts ? "bg-brand-light text-brand" : "bg-amber-50 text-amber-900"}`}>{sc.counts ? "✓ " : "⚠ "}{sc.reason}</p>;
+              })()}
+            </div>
+          )}
         </>
       )}
     </div>

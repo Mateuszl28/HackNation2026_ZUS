@@ -81,6 +81,7 @@ sequenceDiagram
 | Zintegrowany kalkulator: macierzyński, rodzicielski, ojcowski, uzupełniający (wcześniaki), „Za życiem”, ciąża mnoga, 81,5%, łączenie z pracą, podział między rodziców, adopcja, rodzina zastępcza, martwe urodzenie | `/kalkulator` |
 | Planer podziału urlopu rodzicielskiego: do 5 części, naprzemiennie lub jednocześnie, praca do 1/2 etatu – z walidacją puli, 9 tyg. na wyłączność i terminu (KP art. 182¹a–182¹e) | `/kalkulator` → „Podział rodzicielskiego” |
 | Indywidualna podstawa wymiaru (13,71%, minimum, limit dla dobrowolnych) | silnik `computeBase` |
+| Zbieg tytułów ubezpieczenia (etat + zlecenie / działalność / druga umowa): zasiłek z każdego tytułu, reguła etatu ≥ minimalnego wynagrodzenia, dobrowolne chorobowe, art. 61b | `/kalkulator` → „Mam drugi tytuł ubezpieczenia” |
 | Gdzie złożyć dokumenty (pracodawca > 20 osób vs ZUS), terminy | wynik kalkulatora |
 | Zagrożenia i ryzyka (umowa dla pozoru, zawyżona podstawa, ustanie ubezpieczenia, zadłużenie, korekta 81,5%) | kalkulator, pulpit, przewodnik |
 | Symulator „Co jeśli…?”: podwyżka, koniec umowy (art. 177 § 3 KP), nowa umowa/firma, rezygnacja z dobrowolnego chorobowego – skutek dla zasiłku i ryzyka | `/co-jesli` |
@@ -144,7 +145,7 @@ Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) �
 
 ## Testy
 
-- `npm test` – 26 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
+- `npm test` – 28 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
 - `npm run test:api` – 12 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
 - GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu: testy silnika → typecheck → build produkcyjny → start serwera → testy e2e API.
 
