@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Bot, FileCheck2, HeartHandshake, History, HelpCircle, SlidersHorizontal } from "lucide-react";
+import { AlertTriangle, ArrowRight, Bot, FolderKanban, FileCheck2, HeartHandshake, History, HelpCircle, SlidersHorizontal } from "lucide-react";
 import { Ranking, INTENT_LABELS, type Stats } from "@/components/StatsPanel";
 import { useAdmin } from "@/components/admin/AdminContext";
 
 export default function Overview() {
   const { saved, official } = useAdmin();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [todo, setTodo] = useState<number | null>(null);
   useEffect(() => {
     fetch("/api/stats").then((r) => (r.ok ? r.json() : null)).then(setStats).catch(() => {});
+    fetch("/api/admin/cases").then((r) => (r.ok ? r.json() : [])).then((rows: { applications: number; lastApplicationAt: number | null; decision: { at: string } | null }[]) => setTodo(rows.filter((r) => !(r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt))).length)).catch(() => {});
   }, []);
 
   const riskCount = stats ? Object.values(stats.risks).reduce((a, b) => a + b, 0) : 0;
@@ -27,6 +29,15 @@ export default function Overview() {
         <h1>Dzień dobry{official ? `, ${official}` : ""}</h1>
         <p className="text-muted">Przegląd działania Przewodnika Rodzica i obowiązujących parametrów.</p>
       </div>
+
+      <Link href="/admin/sprawy" className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#123a5c] to-[#1d5a8a] p-5 text-white shadow-sm transition hover:shadow-md">
+        <FolderKanban size={28} />
+        <div className="flex-1">
+          <p className="text-2xl font-bold">{todo ?? "…"} {todo === 1 ? "sprawa czeka" : "spraw czeka"} na decyzję</p>
+          <p className="text-sm text-white/75">Przejdź do kolejki spraw – rekomendacja systemu, dane z ZUS i wydanie decyzji w jednym miejscu.</p>
+        </div>
+        <ArrowRight />
+      </Link>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {tiles.map((t) => (

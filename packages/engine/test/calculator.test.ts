@@ -183,3 +183,15 @@ test("pracodawca: próg 20 ubezpieczonych i koszt wynagrodzenia chorobowego", ()
   const big = employerView({ insuredCount: 21, monthlyGross: 6000, dueDate: "2027-05-01", leave: {} });
   assert.equal(big.paysBenefits, true);
 });
+
+import { recommendDecision } from "../src/decision.ts";
+
+test("rekomendacja decyzji dla spraw demo", () => {
+  const rec = (id: string) => { const c = DEMO_CASES.find((x) => x.id === id)!; return recommendDecision(c.input, calculate(c.input), c.zusData); };
+  assert.equal(rec("anna-etat").type, "grant");
+  assert.equal(rec("kasia-jdg").type, "request");
+  assert.equal(rec("ola-zlecenie-ustanie").type, "grant"); // ojciec ma prawo
+  assert.ok(rec("ola-zlecenie-ustanie").reasons.some((r) => r.includes("ustało")));
+  assert.equal(rec("martwe-urodzenie").type, "grant");
+  assert.equal(rec("natalia-dzielo").type, "refuse");
+});

@@ -1,31 +1,60 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, FileClock, Loader2 } from "lucide-react";
+import { Check, FileClock, Gavel, Loader2, Printer } from "lucide-react";
+import { DECISION_LABELS } from "@zus/engine";
 import { applicationStatus, useSession } from "@/lib/session";
+import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
 
-/** Status wysłanych wniosków (symulacja PUE/eZUS i systemu kadrowego pracodawcy). */
+/** Status wniosków obywatela + decyzje urzędnika ZUS (z serwera). */
 export default function ApplicationsTracker() {
   const { session } = useSession();
   const [now, setNow] = useState(() => Date.now());
+  const [decisions, setDecisions] = useState<DecisionDoc[]>([]);
+  const [open, setOpen] = useState<DecisionDoc | null>(null);
   const apps = session.applications ?? [];
-  const pending = apps.some((a) => !applicationStatus(a, now).done);
+  const caseId = session.user?.caseId;
+
+  const load = useCallback(() => {
+    if (!caseId) return;
+    fetch(`/api/applications?caseId=${encodeURIComponent(caseId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => j && setDecisions(j.decisions ?? []))
+      .catch(() => {});
+  }, [caseId]);
 
   useEffect(() => {
-    if (!pending) return;
-    const t = setInterval(() => setNow(Date.now()), 3000);
+    load();
+    const t = setInterval(() => {
+      setNow(Date.now());
+      load();
+    }, 5000);
     return () => clearInterval(t);
-  }, [pending]);
+  }, [load]);
+
+  const latest = decisions[0] ?? null;
 
   return (
     <section className="card">
-      <h2 className="mb-3 flex items-center gap-2"><FileClock className="text-accent" /> Moje wnioski</h2>
+      <h2 className="mb-3 flex items-center gap-2"><FileClock className="text-accent" /> Moje wnioski i decyzje</h2>
+
+      {latest && (
+        <div className={`mb-4 flex flex-wrap items-center gap-3 rounded-xl p-4 ${latest.type === "grant" ? "bg-brand-light" : latest.type === "refuse" ? "bg-red-50" : "bg-amber-50"}`}>
+          <Gavel className={latest.type === "grant" ? "text-brand" : latest.type === "refuse" ? "text-red-600" : "text-amber-600"} />
+          <div className="flex-1">
+            <p className="font-semibold">{latest.type === "request" ? "ZUS wzywa do uzupełnienia dokumentów" : DECISION_LABELS[latest.type]}</p>
+            <p className="text-sm text-muted">{latest.id} · {new Date(latest.at).toLocaleString("pl-PL")}</p>
+          </div>
+          <button className="btn-ghost !py-1.5 text-sm" onClick={() => setOpen(latest)}>Zobacz pismo</button>
+        </div>
+      )}
+
       {!apps.length ? (
         <p className="text-sm text-muted">Nie wysłano jeszcze żadnych wniosków. <Link href="/wnioski" className="font-semibold text-accent">Przejdź do wniosków →</Link></p>
       ) : (
         <ul className="space-y-4">
           {apps.map((a) => {
-            const st = applicationStatus(a, now);
+            const st = applicationStatus(a, now, a.to.startsWith("Pracodawca") ? null : latest);
             return (
               <li key={a.id} className="rounded-xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -51,7 +80,19 @@ export default function ApplicationsTracker() {
           })}
         </ul>
       )}
-      <p className="mt-3 text-xs text-muted">Symulacja: statusy zmieniają się w przyspieszonym tempie (sekundy zamiast dni). W wersji produkcyjnej – dane z PUE/eZUS.</p>
+      <p className="mt-3 text-xs text-muted">Wnioski do ZUS rozpatruje urzędnik w panelu urzędnika – decyzja pojawi się tutaj automatycznie. Status u pracodawcy jest symulowany.</p>
+
+      {open && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-4 print:static print:bg-white print:p-0" role="dialog" aria-modal>
+          <div className="mx-auto max-w-2xl space-y-3">
+            <div className="flex justify-end gap-2 print:hidden">
+              <button className="btn-primary !py-1.5 text-sm" onClick={() => window.print()}><Printer size={16} /> Drukuj / PDF</button>
+              <button className="btn-ghost !py-1.5 text-sm" onClick={() => setOpen(null)}>Zamknij</button>
+            </div>
+            <DecisionLetter d={open} person={session.user?.name ?? ""} />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

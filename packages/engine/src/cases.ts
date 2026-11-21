@@ -151,4 +151,19 @@ export const DEMO_CASES: DemoCase[] = [
       ezla: [],
     },
   },
+  {
+    id: "natalia-dzielo",
+    title: "Natalia – umowa o dzieło, partner student",
+    description: "Umowa o dzieło (bez ubezpieczenia chorobowego), partner studiuje. Poród 2027-04-12.",
+    expected: "Odmowa – brak tytułu do ubezpieczenia chorobowego; przysługuje świadczenie rodzicielskie.",
+    input: {
+      scenario: "birth",
+      eventDate: "2027-04-12",
+      children: 1,
+      mother: { title: "none", monthlyBase: 0 },
+      father: { title: "none", monthlyBase: 0 },
+      plan: {},
+    },
+    zusData: { insurance: [], debt: 0, ezla: [] },
+  },
 ];

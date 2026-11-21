@@ -2,3 +2,4 @@
 node_modules
 data/params.json
 data/stats.json
+data/cases.json

@@ -25,12 +25,15 @@ apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym si
 | Kontakt z PUE/eZUS (symulacja) | `/pulpit` |
 | Wnioski o urlopy, ZAM, odpis aktu urodzenia (symulacja wysyłki) | `/wnioski` |
 | Upload / wybór wniosków PDF, weryfikacja ubezpieczenia | `/sprawy`, `POST /api/parse` |
+| Obsługa spraw przez urzędnika: kolejka spraw, karta osoby (dane ZUS, wnioski, wyliczenie), rekomendacja systemu, decyzja: przyznanie / odmowa / wezwanie – widoczna u obywatela | `/admin/sprawy` |
 | Panel urzędnika: parametry prawne, organizacje, statystyki, historia zmian | `/admin` – logowanie urzędnika (demo: `urzednik` / `zus2026`; env `ADMIN_LOGIN`, `ADMIN_PASSWORD`, `ADMIN_SECRET`) |
 
 ## REST API
 
 - `GET  /api/params` – parametry prawne i lista organizacji
 - `PUT  /api/params` – zapis parametrów (sesja urzędnika)
+- `GET  /api/admin/cases`, `GET /api/admin/cases/:id`, `POST /api/admin/cases/:id/decision` – sprawy i decyzje (sesja urzędnika)
+- `POST /api/applications`, `GET /api/applications?caseId=` – wnioski obywatela do ZUS i jego decyzje
 - `POST /api/admin/session` – logowanie urzędnika (ciasteczko httpOnly), `DELETE` – wylogowanie
 - `POST /api/calculate` – `CalcInput` → okresy, kwoty, uprawnienia, ryzyka, dokumenty
 - `POST /api/sickness` – zasiłek chorobowy w ciąży

@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, ExternalLink, HeartHandshake, History, Landmark, LayoutDashboard, LogOut, Menu, RotateCcw, Save, SlidersHorizontal, UserRound, X } from "lucide-react";
+import { BarChart3, FolderKanban, ExternalLink, HeartHandshake, History, Landmark, LayoutDashboard, LogOut, Menu, RotateCcw, Save, SlidersHorizontal, UserRound, X } from "lucide-react";
 import { AdminProvider, useAdmin } from "@/components/admin/AdminContext";
 
 const NAV = [
   { href: "/admin", label: "Przegląd", icon: LayoutDashboard },
+  { href: "/admin/sprawy", label: "Sprawy", icon: FolderKanban },
   { href: "/admin/parametry", label: "Parametry prawne", icon: SlidersHorizontal },
   { href: "/admin/organizacje", label: "Organizacje wsparcia", icon: HeartHandshake },
   { href: "/admin/statystyki", label: "Statystyki", icon: BarChart3 },
@@ -56,7 +57,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-slate-100">
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-gradient-to-b from-[#123a5c] to-[#0c2740] lg:flex">
+      <aside className="sticky top-0 hidden h-dvh print:!hidden w-64 shrink-0 flex-col bg-gradient-to-b from-[#123a5c] to-[#0c2740] lg:flex">
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5 text-white">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/15"><Landmark size={20} /></span>
           <span className="leading-tight"><span className="block font-bold">Panel urzędnika</span><span className="text-xs text-white/60">Przewodnik Rodzica · ZUS</span></span>
@@ -74,7 +75,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:px-8">
+        <header className="sticky top-0 z-30 flex h-16 print:hidden items-center gap-3 border-b border-slate-200 bg-white px-4 lg:px-8">
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Menu"><Menu /></button>
           <p className="truncate text-sm text-muted">
             {saved ? <>Parametry <b className="text-ink">v{saved.params.version}</b> · obowiązują od {saved.params.updatedAt}</> : "Ładowanie…"}

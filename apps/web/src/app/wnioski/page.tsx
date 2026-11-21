@@ -90,6 +90,8 @@ export default function Applications() {
   const addApp = (title: string, to: string) => {
     const id = `${to.startsWith("Pracodawca") ? "PR" : "ZUS"}-${Date.now().toString().slice(-8)}`;
     update({ applications: [{ id, title, to, sentAt: Date.now() }, ...(session.applications ?? [])].slice(0, 20) });
+    // wnioski do ZUS trafiają do kolejki urzędnika
+    if (!to.startsWith("Pracodawca") && session.user) fetch("/api/applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ caseId: session.user.caseId, id, title, to }) }).catch(() => {});
     return id;
   };
   const params = useParams();

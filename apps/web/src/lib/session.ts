@@ -15,15 +15,19 @@ export interface Session {
   applications?: SentApplication[];
 }
 
-/** Symulowany status wniosku w PUE/eZUS – zależny od czasu od wysłania (przyspieszony na potrzeby demo). */
-export function applicationStatus(a: SentApplication, now = Date.now()) {
+/** Status wniosku: do pracodawcy – symulacja kadr; do ZUS – realny stan sprawy (decyzja urzędnika). */
+export function applicationStatus(a: SentApplication, now = Date.now(), decision?: { type: string; at: string } | null) {
   const s = (now - a.sentAt) / 1000;
-  const employer = a.to.startsWith("Pracodawca");
-  const steps = employer
-    ? ["Wysłany do pracodawcy", "Przyjęty przez kadry", "Urlop udzielony"]
-    : ["Złożony – UPO wydane", "W weryfikacji (sprawdzenie ubezpieczenia i podstawy)", "Decyzja: świadczenie przyznane"];
-  const step = s < 20 ? 0 : s < 60 ? 1 : 2;
-  return { steps, step, done: step === 2 };
+  if (a.to.startsWith("Pracodawca")) {
+    const steps = ["Wysłany do pracodawcy", "Przyjęty przez kadry", "Urlop udzielony"];
+    const step = s < 20 ? 0 : s < 60 ? 1 : 2;
+    return { steps, step, done: step === 2 };
+  }
+  const label = decision ? ({ grant: "Decyzja: świadczenie przyznane", refuse: "Decyzja: odmowa", request: "Wezwanie do uzupełnienia dokumentów" } as Record<string, string>)[decision.type] : "Decyzja urzędnika";
+  const steps = ["Złożony – UPO wydane", "W weryfikacji u urzędnika ZUS", label];
+  const decided = !!decision && new Date(decision.at).getTime() >= a.sentAt - 5000;
+  const step = decided ? 2 : s < 20 ? 0 : 1;
+  return { steps, step, done: decided };
 }
 
 const KEY = "zpr-session";
