@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh antialiased">
         <Nav />
         <main className="mx-auto max-w-6xl px-4 py-6 sm:py-10">{children}</main>
-        <footer className="border-t border-slate-200 py-6 text-center text-xs text-muted px-4">
+        <footer className="border-t border-slate-200 py-6 pb-24 lg:pb-6 text-center text-xs text-muted px-4">
           Projekt HackNation 2026 · Narzędzie informacyjne – wiążące decyzje wydaje ZUS lub płatnik składek. Logowanie mObywatel, dane ZUS i e-ZLA są symulowane.
         </footer>
       </body>

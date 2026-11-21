@@ -247,7 +247,7 @@ export default function CalculatorPage() {
 
               <section className="card overflow-x-auto">
                 <h2 className="mb-3">Okresy i kwoty</h2>
-                <table className="w-full text-sm min-w-[560px]">
+                <table className="w-full text-sm min-w-[600px] [&_th]:px-2 [&_td]:px-2 [&_th:first-child]:pl-0 [&_td:first-child]:pl-0">
                   <thead className="text-left text-muted border-b"><tr><th className="py-2">Okres</th><th>Od – do</th><th className="text-right">Tyg.</th><th className="text-right">%</th><th className="text-right">Miesięcznie</th><th className="text-right">Razem</th></tr></thead>
                   <tbody>
                     {result.periods.map((p, i) => (
