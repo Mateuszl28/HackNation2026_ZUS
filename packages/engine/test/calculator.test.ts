@@ -90,3 +90,27 @@ test("parser Z-3", () => {
   assert.equal(d.insured, true);
   assert.equal(d.eventDate, "2027-03-15");
 });
+
+import { compareVariants, deadlines, toICS } from "../src/planning.ts";
+import { answerQuestion } from "../src/assistant.ts";
+
+test("porównanie wariantów – 4 warianty, ojciec +9 tyg. zwiększa kwotę", () => {
+  const c = DEMO_CASES.find((c) => c.id === "anna-etat")!;
+  const { variants, recommendation } = compareVariants(c.input);
+  assert.equal(variants.length, 4);
+  assert.ok(variants[0].result.total > variants[2].result.total);
+  assert.ok(recommendation.length > 10);
+});
+
+test("terminy + ICS", () => {
+  const c = DEMO_CASES.find((c) => c.id === "anna-etat")!;
+  const d = deadlines(c.input, calculate(c.input));
+  assert.ok(d.some((x) => x.title.includes("81,5")));
+  assert.ok(toICS(d).startsWith("BEGIN:VCALENDAR"));
+});
+
+test("asystent rozpoznaje intencje", () => {
+  assert.equal(answerQuestion("czy opłaca się 81,5%?").intent, "815");
+  assert.equal(answerQuestion("co przysługuje tacie").intent, "ojciec");
+  assert.equal(answerQuestion("mam JDG i zadłużenie").intent, "dzialalnosc");
+});

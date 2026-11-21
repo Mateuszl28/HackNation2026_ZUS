@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { calculate, calculatePregnancySickness, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
+import { calculate, calculatePregnancySickness, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
-import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark } from "lucide-react";
+import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
 
 const TITLES: [InsuranceTitle, string][] = [
   ["employment", "Umowa o pracę"],
@@ -105,6 +105,17 @@ export default function CalculatorPage() {
   const setPlan = (patch: Partial<CalcInput["plan"]>) => setInput((i) => ({ ...i, plan: { ...i.plan, ...patch } }));
   const result = useMemo(() => calculate(input, params), [input, params]);
   const sickRes = useMemo(() => calculatePregnancySickness({ parent: input.mother, startDate: sick.startDate, days: sick.days, usedDaysThisYear: sick.used }, params), [input.mother, sick, params]);
+  const cmp = useMemo(() => compareVariants(input, params), [input, params]);
+  const dl = useMemo(() => deadlines(input, result, params), [input, result, params]);
+  const bestId = cmp.variants.reduce((a, b) => (b.result.total > a.result.total ? b : a)).id;
+  const downloadICS = () => {
+    const url = URL.createObjectURL(new Blob([toICS(dl)], { type: "text/calendar" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "terminy-rodzicielskie.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const isBirth = input.scenario === "birth";
   const wf = input.plan.workFraction;
 
@@ -123,7 +134,7 @@ export default function CalculatorPage() {
 
       <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
         {/* ---------- FORM ---------- */}
-        <div className="space-y-4">
+        <div className="space-y-4 print:hidden">
           <section className="card space-y-3">
             <h2>Sytuacja</h2>
             <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-sm">
@@ -278,6 +289,43 @@ export default function CalculatorPage() {
                     </li>
                   ))}
                 </ul>
+              </section>
+
+              <section className="card">
+                <h2 className="mb-1 flex items-center gap-2"><Scale className="text-accent" /> Porównanie wariantów</h2>
+                <p className="text-sm text-muted mb-4">Ta sama sytuacja, różne decyzje – zobacz, co się opłaca.</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {cmp.variants.map((v) => (
+                    <button key={v.id} onClick={() => setInput(v.input)} className={`text-left rounded-xl border p-4 transition hover:border-brand ${v.id === bestId && v.result.total > 0 ? "border-brand bg-brand-light/50" : "border-slate-200"}`}>
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="font-semibold">{v.name}</p>
+                        {v.id === bestId && v.result.total > 0 && <Trophy size={16} className="text-brand shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted mt-1">{v.description}</p>
+                      <p className="text-xl font-bold mt-2">{pln(v.result.total)}</p>
+                      <p className="text-xs text-muted">{v.totalWeeks} tyg. · śr. {pln(v.avgMonthly)}/mies.</p>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-4 rounded-xl bg-sky-50 p-3 text-sm text-sky-900">{cmp.recommendation}</p>
+              </section>
+
+              <section className="card">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+                  <h2 className="flex items-center gap-2"><CalendarPlus className="text-brand" /> Terminy do pilnowania</h2>
+                  <div className="flex gap-2 print:hidden">
+                    <button className="btn-ghost text-sm !py-1.5" onClick={downloadICS}><CalendarPlus size={16} /> Do kalendarza (.ics)</button>
+                    <button className="btn-ghost text-sm !py-1.5" onClick={() => window.print()}><Printer size={16} /> PDF</button>
+                  </div>
+                </div>
+                <ol className="space-y-2">
+                  {dl.map((d, i) => (
+                    <li key={i} className="flex gap-3 text-sm">
+                      <span className={`chip h-fit shrink-0 font-mono ${d.critical ? "bg-red-100 text-red-800" : "bg-slate-100"}`}>{d.date}</span>
+                      <span><b>{d.title}</b> <span className="text-muted">· {d.who === "both" ? "oboje" : d.who === "mother" ? "matka" : "ojciec"}</span><br /><span className="text-muted">{d.description}</span></span>
+                    </li>
+                  ))}
+                </ol>
               </section>
             </>
           )}

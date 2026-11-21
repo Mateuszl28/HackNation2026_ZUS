@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Baby, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, Map, Menu, Settings, X, LogIn, LogOut } from "lucide-react";
+import { Baby, Bot, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, Map, Menu, Settings, X, LogIn, LogOut } from "lucide-react";
 import { useSession } from "@/lib/session";
 
 const LINKS = [
   { href: "/pulpit", label: "Mój pulpit", icon: LayoutDashboard },
   { href: "/kalkulator", label: "Kalkulator", icon: Calculator },
+  { href: "/asystent", label: "Asystent", icon: Bot },
   { href: "/przewodnik", label: "Przewodnik", icon: Map },
   { href: "/sprawy", label: "Sprawy / dokumenty", icon: FolderOpen },
   { href: "/wnioski", label: "Wnioski", icon: FileText },

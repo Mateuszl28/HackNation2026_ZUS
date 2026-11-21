@@ -22,3 +22,5 @@ body { background: #f6f8f7; color: var(--color-ink); }
 @utility chip { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
 h1 { @apply text-2xl sm:text-3xl font-bold tracking-tight; }
 h2 { @apply text-lg font-semibold; }
+
+@media print { header, footer { display: none !important; } body { background: #fff; } }
