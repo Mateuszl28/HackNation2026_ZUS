@@ -2,26 +2,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
+import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
 import { isProtected } from "@/components/AuthGate";
 
-const PRIMARY = [
-  { href: "/pulpit", label: "Pulpit", icon: LayoutDashboard },
-  { href: "/plan", label: "Mój plan", icon: ListChecks },
-  { href: "/kalkulator", label: "Kalkulator", icon: Calculator },
-  { href: "/asystent", label: "Asystent", icon: Bot },
-  { href: "/sprawy", label: "Dokumenty", icon: FolderOpen },
-];
-const MORE = [
-  { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
-  { href: "/wnioski", label: "Wnioski", desc: "Urlopy, ZAM, odpis aktu urodzenia", icon: FileText },
-  { href: "/pracodawca", label: "Dla pracodawcy", desc: "Kto wypłaca zasiłek, koszty, obowiązki i terminy", icon: Briefcase },
-  { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
-  { href: "/admin", label: "Panel admina", desc: "Parametry prawne i stawki", icon: Settings },
-];
-const MOBILE = PRIMARY.slice(0, 4);
+type Item = { href: string; label: string; desc?: string; icon: typeof Baby };
+const L = {
+  pulpit: { href: "/pulpit", label: "Pulpit", desc: "Dane z ZUS, wnioski, zadłużenie, e-ZLA", icon: LayoutDashboard },
+  plan: { href: "/plan", label: "Mój plan", desc: "Checklista i postęp ciąży", icon: ListChecks },
+  kalk: { href: "/kalkulator", label: "Kalkulator", desc: "Pełny kalkulator zasiłków dla obojga rodziców", icon: Calculator },
+  docs: { href: "/sprawy", label: "Dokumenty", desc: "Wgraj Z-3, ZAM – odczytamy dane", icon: FolderOpen },
+  wnioski: { href: "/wnioski", label: "Wnioski", desc: "Urlopy, ZAM, odpis aktu urodzenia", icon: FileText },
+  kreator: { href: "/kreator", label: "Sprawdź uprawnienia", desc: "5 pytań – wynik w minutę, bez logowania", icon: Sparkles },
+  asystent: { href: "/asystent", label: "Asystent", desc: "Zapytaj o zasiłki i urlopy", icon: Bot },
+  przewodnik: { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
+  pracodawca: { href: "/pracodawca", label: "Dla pracodawcy", desc: "Kto wypłaca zasiłek, koszty, obowiązki i terminy", icon: Briefcase },
+  wsparcie: { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
+  admin: { href: "/admin", label: "Panel admina", desc: "Parametry prawne, statystyki", icon: Settings },
+} satisfies Record<string, Item>;
+const MENU = {
+  guest: { primary: [L.kreator, L.asystent, L.przewodnik, L.pracodawca, L.wsparcie], more: [L.kalk, L.docs, L.wnioski, L.admin] },
+  user: { primary: [L.pulpit, L.plan, L.kalk, L.asystent, L.docs], more: [L.wnioski, L.kreator, L.przewodnik, L.pracodawca, L.wsparcie, L.admin] },
+};
 
 export default function Nav() {
   const path = usePathname();
@@ -29,8 +32,14 @@ export default function Nav() {
   const [more, setMore] = useState(false);
   const [sheet, setSheet] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const menu = session.user ? MENU.user : MENU.guest;
+  const PRIMARY: Item[] = menu.primary;
+  const MORE: Item[] = menu.more;
+  const MOBILE = PRIMARY.slice(0, 4);
   const active = (h: string) => path === h || path.startsWith(h + "/");
   const moreActive = MORE.some((m) => active(m.href));
+  const sheetActive = [...PRIMARY.slice(4), ...MORE].some((m) => active(m.href));
+  
 
   useEffect(() => {
     setMore(false);
@@ -49,7 +58,7 @@ export default function Nav() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5">
             <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark text-white shadow-md shadow-brand/30 transition group-hover:scale-105">
               <Baby size={22} />
@@ -98,7 +107,7 @@ export default function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            <span className="hidden sm:block"><A11y /></span>
+            <span className="hidden xl:block"><A11y /></span>
             {session.user ? (
               <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-1 sm:pr-3">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-white">{initials}</span>
@@ -109,7 +118,7 @@ export default function Nav() {
               </div>
             ) : (
               <Link href="/logowanie" className="btn-primary !rounded-full !px-4 !py-2 text-sm shadow-md shadow-brand/25">
-                <LogIn size={16} /> <span className="hidden xl:inline whitespace-nowrap">Zaloguj przez mObywatel</span><span className="xl:hidden">Zaloguj</span>
+                <LogIn size={16} /> <span className="hidden 2xl:inline whitespace-nowrap">Zaloguj przez mObywatel</span><span className="2xl:hidden">Zaloguj</span>
               </Link>
             )}
           </div>
@@ -127,8 +136,8 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <button onClick={() => setSheet(true)} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${moreActive || active("/sprawy") ? "text-brand" : "text-slate-500"}`}>
-            <span className={`grid h-7 w-12 place-items-center rounded-full ${moreActive || active("/sprawy") ? "bg-brand-light" : ""}`}><MoreHorizontal size={20} /></span>
+          <button onClick={() => setSheet(true)} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${sheetActive ? "text-brand" : "text-slate-500"}`}>
+            <span className={`grid h-7 w-12 place-items-center rounded-full ${sheetActive ? "bg-brand-light" : ""}`}><MoreHorizontal size={20} /></span>
             Więcej
           </button>
         </div>
@@ -145,11 +154,11 @@ export default function Nav() {
               <button onClick={() => setSheet(false)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-slate-100" aria-label="Zamknij"><X size={18} /></button>
             </div>
             <div className="grid gap-1">
-              {[{ href: "/sprawy", label: "Dokumenty i sprawy", desc: "Wgraj PDF lub wybierz sprawę", icon: FolderOpen }, ...MORE].map((m) => (
+              {[...PRIMARY.slice(4), ...MORE].map((m) => (
                 <Link key={m.href} href={m.href} className={`flex items-center gap-3 rounded-2xl p-3 ${active(m.href) ? "bg-brand-light/60" : "active:bg-slate-100"}`}>
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-light text-brand"><m.icon size={20} /></span>
                   <span>
-                    <span className="block font-semibold">{m.label}</span>
+                    <span className="flex items-center gap-1 font-semibold">{m.label}{!session.user && isProtected(m.href) && <Lock size={12} className="text-slate-400" />}</span>
                     <span className="block text-xs text-muted">{m.desc}</span>
                   </span>
                 </Link>
