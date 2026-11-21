@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, FileText, Printer, Send, Sparkles, X } from "lucide-react";
-import { addDays, calculate, type Period } from "@zus/engine";
+import { addDays, calculate, pln, type Period } from "@zus/engine";
 import { useParams, useSession } from "@/lib/session";
 
 const FORMS = {
@@ -101,16 +101,20 @@ export default function Applications() {
   const [doc, setDoc] = useState<Period | null>(null);
   const [sentLeaves, setSentLeaves] = useState<Record<number, string>>({});
   const [v, setV] = useState<Record<string, string>>({ copyType: "skrócony" });
+  const [zamOff, setZamOff] = useState<Record<number, boolean>>({});
+  const [zamPreview, setZamPreview] = useState(false);
   const result = useMemo(() => (session.input ? calculate(session.input, params) : null), [session.input, params]);
   const f = FORMS[form];
   const field = (k: string, label: string, type = "text") => (
     <label className="block"><span className="label">{label}</span><input type={type} className="input" value={v[k] ?? ""} onChange={(e) => setV({ ...v, [k]: e.target.value })} /></label>
   );
 
+  const zamPeriods = result?.periods.filter((p) => p.who === (v.zamWho ?? "mother")) ?? [];
+  const zamChosen = zamPeriods.filter((_, i) => !zamOff[i]);
   const employeePeriods = result?.periods.filter((p) => (p.who === "mother" ? session.input!.mother : session.input!.father).title === "employment") ?? [];
 
   return (
-    <div className={`space-y-8 ${doc ? "print:[&>*:not(:last-child)]:hidden" : ""}`}>
+    <div className={`space-y-8 ${doc || zamPreview ? "print:[&>*:not(:last-child)]:hidden" : ""}`}>
       <div>
         <h1>Wnioski</h1>
         <p className="text-muted">Wnioski o urlopy wypełniamy na podstawie Twojego planu. Wnioski o zasiłek – zgodnie ze wzorami ZUS.</p>
@@ -168,11 +172,22 @@ export default function Applications() {
             {field("pesel", "PESEL")}
             {form === "zam" && (
               <>
-                {field("from", "Okres zasiłku od", "date")}
-                {field("to", "do", "date")}
+                <label className="block"><span className="label">Wnioskodawca</span>
+                  <select className="input" value={v.zamWho ?? "mother"} onChange={(e) => setV({ ...v, zamWho: e.target.value })}><option value="mother">matka / rodzic 1</option><option value="father">ojciec / rodzic 2</option></select>
+                </label>
                 {field("account", "Numer rachunku bankowego")}
-                <label className="block"><span className="label">Tytuł</span><select className="input"><option>urlop macierzyński</option><option>urlop rodzicielski</option><option>urlop ojcowski</option></select></label>
-                <label className="sm:col-span-2 flex gap-2 text-sm"><input type="checkbox" /> Wnoszę o zasiłek 81,5% za cały okres (do 21 dni po porodzie)</label>
+                <div className="sm:col-span-2">
+                  <p className="label">Okresy, za które wnioskujesz (z Twojego planu)</p>
+                  {!result ? <p className="text-sm text-muted">Zaplanuj urlopy w kalkulatorze – okresy wpiszą się tu automatycznie.</p> : zamPeriods.length === 0 ? <p className="text-sm text-muted">Brak okresów zasiłku dla tej osoby w planie.</p> : (
+                    <ul className="space-y-1 rounded-xl border border-slate-200 p-2">
+                      {zamPeriods.map((p, i) => (
+                        <li key={i}><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!zamOff[i]} onChange={(e) => setZamOff({ ...zamOff, [i]: !e.target.checked })} /> <span className="flex-1">{p.label}</span><span className="text-muted">{p.start} – {p.end} · {pln(p.total)}</span></label></li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <label className="sm:col-span-2 flex gap-2 text-sm"><input type="checkbox" checked={!!session.input?.plan.oneApplication} readOnly /> Wnoszę o zasiłek 81,5% za cały okres (z planu – zmienisz w kalkulatorze)</label>
+                {zamPeriods.length > 0 && <button type="button" className="btn-ghost sm:col-span-2 justify-self-start" onClick={() => setZamPreview(true)}><Printer size={16} /> Podgląd wniosku ZAM</button>}
               </>
             )}
             {form === "odpis" && (
@@ -189,6 +204,39 @@ export default function Applications() {
           </form>
         )}
       </section>
+
+      {zamPreview && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-4 print:static print:bg-white print:p-0" role="dialog" aria-modal>
+          <div className="mx-auto max-w-2xl space-y-3">
+            <div className="flex justify-end gap-2 print:hidden">
+              <button className="btn-primary !py-1.5 text-sm" onClick={() => window.print()}><Printer size={16} /> Drukuj / PDF</button>
+              <button className="btn-ghost !py-1.5 text-sm" onClick={() => setZamPreview(false)}>Zamknij</button>
+            </div>
+            <article className="space-y-4 rounded-2xl bg-white p-8 font-serif text-[15px] leading-relaxed">
+              <div className="flex justify-between text-sm"><p className="font-bold">ZAM</p><p>Zakład Ubezpieczeń Społecznych</p></div>
+              <h2 className="text-center !text-lg font-bold uppercase">Wniosek o zasiłek macierzyński</h2>
+              <p className="text-xs text-slate-500">Wzór poglądowy przygotowany na podstawie Twojego planu – oficjalny formularz: zus.pl / eZUS.</p>
+              <table className="w-full text-sm"><tbody>
+                <tr className="border-b"><td className="py-1 text-slate-500">Wnioskodawca</td><td className="font-semibold">{name || "……………………"}</td></tr>
+                <tr className="border-b"><td className="py-1 text-slate-500">PESEL</td><td>{v.pesel || "……………………"}</td></tr>
+                <tr className="border-b"><td className="py-1 text-slate-500">Rola</td><td>{(v.zamWho ?? "mother") === "mother" ? "matka dziecka / rodzic 1" : "ojciec dziecka / rodzic 2"}</td></tr>
+                <tr className="border-b"><td className="py-1 text-slate-500">Data porodu / przyjęcia dziecka</td><td>{session.input?.eventDate}</td></tr>
+                <tr className="border-b"><td className="py-1 text-slate-500">Liczba dzieci</td><td>{session.input?.children}</td></tr>
+                <tr className="border-b"><td className="py-1 text-slate-500">Rachunek bankowy</td><td>{v.account || "……………………"}</td></tr>
+              </tbody></table>
+              <p className="font-bold">Wnoszę o wypłatę zasiłku macierzyńskiego za okres:</p>
+              <table className="w-full text-sm">
+                <thead className="border-b text-left"><tr><th className="py-1">Rodzaj</th><th>Od – do</th><th className="text-right">Wymiar</th></tr></thead>
+                <tbody>{zamChosen.map((p, i) => <tr key={i} className="border-b border-slate-100"><td className="py-1">{p.label}</td><td>{p.start} – {p.end}</td><td className="text-right">{p.weeks} tyg.</td></tr>)}</tbody>
+              </table>
+              {session.input?.plan.oneApplication && <p>Wnoszę o ustalenie zasiłku w wysokości 81,5% podstawy wymiaru za cały okres urlopu macierzyńskiego i rodzicielskiego (wniosek złożony nie później niż 21 dni po porodzie).</p>}
+              <p className="font-bold">Załączniki:</p>
+              <ol className="list-decimal pl-6 text-sm">{(result?.documents ?? []).filter((d) => d.who === (v.zamWho ?? "mother") && !/ZAM/.test(d.name)).map((d) => <li key={d.name}>{d.name}</li>)}</ol>
+              <div className="flex justify-end pt-8 text-center text-sm"><div><p className="border-b border-dotted border-slate-400 min-w-56">&nbsp;</p><p className="text-xs text-slate-500">(data i podpis wnioskodawcy)</p></div></div>
+            </article>
+          </div>
+        </div>
+      )}
 
       {doc && <LeaveDocument p={doc} name={name} oneApp={!!session.input?.plan.oneApplication} onClose={() => setDoc(null)} />}
     </div>

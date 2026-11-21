@@ -38,10 +38,19 @@ export interface StoredDocument {
   at: number;
 }
 
+export interface InternalNote {
+  id: string;
+  caseId: string;
+  by: string;
+  at: string;
+  text: string;
+}
+
 interface Store {
   applications: StoredApplication[];
   decisions: Decision[];
   documents?: StoredDocument[];
+  notes?: InternalNote[]; // wyłącznie dla urzędników – nie trafiają do API obywatela
 }
 
 let mem: Store | null = null;
@@ -94,6 +103,19 @@ export async function forCase(caseId: string) {
     decisions: s.decisions.filter((d) => d.caseId === caseId),
     documents: (s.documents ?? []).filter((d) => d.caseId === caseId),
   };
+}
+
+export async function addNote(n: InternalNote) {
+  const s = await load();
+  s.notes = [n, ...(s.notes ?? [])].slice(0, 2000);
+  await persist();
+  return n;
+}
+
+/** Notatki wewnętrzne – tylko dla endpointów urzędnika. */
+export async function notesFor(caseId: string) {
+  const s = await load();
+  return (s.notes ?? []).filter((n) => n.caseId === caseId);
 }
 
 export async function allCases() {

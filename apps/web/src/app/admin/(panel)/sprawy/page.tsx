@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronRight, Search } from "lucide-react";
+import { AlertTriangle, ChevronRight, Download, Search } from "lucide-react";
 import { DECISION_LABELS, pln, type DecisionType } from "@zus/engine";
 
 interface Row {
@@ -69,7 +69,8 @@ export default function CasesPage() {
             <button key={k} onClick={() => setTab(k)} className={`rounded-lg px-3 py-1.5 ${tab === k ? "bg-[#123a5c] font-semibold text-white" : "text-slate-600"}`}>{l}</button>
           ))}
         </div>
-        <label className="relative ml-auto">
+        <a href="/api/admin/export?type=cases" className="btn-ghost ml-auto !py-1.5 text-sm"><Download size={15} /> Eksport CSV</a>
+        <label className="relative">
           <Search size={16} className="absolute left-3 top-3 text-muted" />
           <input className="input !w-64 pl-9" placeholder="Szukaj osoby…" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>

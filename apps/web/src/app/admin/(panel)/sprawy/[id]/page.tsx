@@ -2,7 +2,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Check, FileText, Gavel, Info, OctagonAlert, Printer, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, StickyNote, FileText, Gavel, Info, OctagonAlert, Printer, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
 import { DECISION_LABELS, pln, type CalcResult, type DecisionType, type DemoCase, type Recommendation } from "@zus/engine";
 import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
 
@@ -12,6 +12,7 @@ interface Detail {
   recommendation: Recommendation;
   applications: { id: string; title: string; to: string; sentAt: number }[];
   decisions: DecisionDoc[];
+  notes: { id: string; by: string; at: string; text: string }[];
   checks: { level: "ok" | "warning" | "danger"; text: string; doc?: string }[];
   sla: { days: number; left: number; deadline: string; level: "ok" | "warning" | "danger" } | null;
   documents: { id: string; name: string; fileName?: string; formType?: string; fields?: { label: string; value: string }[]; inResponseTo?: string; at: number }[];
@@ -41,6 +42,7 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [issued, setIssued] = useState<DecisionDoc | null>(null);
+  const [note, setNote] = useState("");
 
   const load = () =>
     fetch(`/api/admin/cases/${id}`).then(async (r) => {
@@ -243,6 +245,25 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
             <button className="btn-primary w-full !bg-[#123a5c] !py-3 hover:!bg-[#0c2740]" disabled={busy} onClick={submit}>
               <Gavel size={18} /> {busy ? "Zapisywanie…" : type === "request" ? "Wyślij wezwanie" : "Wydaj decyzję"}
             </button>
+          </section>
+
+          <section className="card">
+            <h2 className="mb-1 flex items-center gap-2"><StickyNote size={18} /> Notatki wewnętrzne</h2>
+            <p className="mb-3 text-xs text-muted">Widoczne tylko dla pracowników ZUS – nie trafiają do obywatela.</p>
+            <ul className="mb-3 space-y-2">
+              {d.notes.map((n) => (
+                <li key={n.id} className="rounded-lg bg-yellow-50 p-2 text-sm">
+                  <p className="whitespace-pre-line">{n.text}</p>
+                  <p className="mt-1 text-xs text-muted">{n.by} · {new Date(n.at).toLocaleString("pl-PL")}</p>
+                </li>
+              ))}
+              {!d.notes.length && <li className="text-sm text-muted">Brak notatek.</li>}
+            </ul>
+            <textarea className="input min-h-16 text-sm" placeholder="np. Telefon do płatnika w sprawie Z-3 – oczekuje na korektę…" value={note} onChange={(e) => setNote(e.target.value)} />
+            <button className="btn-ghost mt-2 w-full !py-2 text-sm" disabled={note.trim().length < 2} onClick={async () => {
+              const r = await fetch(`/api/admin/cases/${id}/notes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: note }) });
+              if (r.ok) { setNote(""); load(); }
+            }}>Dodaj notatkę</button>
           </section>
 
           {d.decisions.length > 0 && (
