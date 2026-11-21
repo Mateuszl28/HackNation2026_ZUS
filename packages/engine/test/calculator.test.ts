@@ -285,3 +285,17 @@ test("zestaw dokumentów: umowa zakończona przed porodem → odmowa zgodna z ZU
   assert.equal(r.verdict, "refused");
   assert.equal(r.agreement, true);
 });
+
+test("parser odporny na brak polskich znaków (PDF/OCR)", () => {
+  const d = parseDocumentText("ZASWIADCZENIE PLATNIKA SKLADEK Z-3\nUmowa o prace od dnia 01.02.2021\nPodlega ubezpieczeniu chorobowemu\nPrzecietne wynagrodzenie: 7 100,00\nData porodu 12.05.2026");
+  assert.equal(d.title, "employment");
+  assert.equal(d.monthlyBase, 7100);
+  assert.equal(d.insured, true);
+  assert.equal(d.eventDate, "2026-05-12");
+});
+
+test("parser: etykieta bez wartości na stronie + pole formularza w osobnej linii", () => {
+  const d = parseDocumentText("Z-3\nData porodu\nZatrudniony od dnia\nData porodu: 12.05.2026\nZatrudniony od dnia: 01.02.2021\nUbezpieczenie chorobowe: TAK");
+  assert.equal(d.eventDate, "2026-05-12");
+  assert.equal(d.insuredSince, "2021-02-01");
+});

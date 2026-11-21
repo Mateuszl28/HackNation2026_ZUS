@@ -13,6 +13,9 @@ export interface ParsedDocument {
   warnings: string[];
 }
 
+/** Usuwa polskie znaki diakrytyczne – dopasowanie odporne na utracone ogonki (fonty PDF, skany, OCR). */
+export const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L");
+
 const FORMS: [RegExp, string, InsuranceTitle | undefined][] = [
   [/\bZ-3a\b/i, "Z-3a – zaświadczenie płatnika (zleceniobiorca)", "mandate"],
   [/\bZ-3b\b/i, "Z-3b – zaświadczenie (działalność)", "business"],
@@ -22,7 +25,7 @@ const FORMS: [RegExp, string, InsuranceTitle | undefined][] = [
   [/\bZAM\b/, "ZAM – wniosek o zasiłek macierzyński", undefined],
   [/\bZUR\b/, "ZUR – wniosek (rodzicielski) – zlikwidowany 24.10.2026, zastąpiony ZAM", undefined],
   [/\bZAO\b/, "ZAO – wniosek (ojcowski) – zlikwidowany 24.10.2026, zastąpiony ZAM", undefined],
-  [/poświadczenie\s+ubezpieczenia/i, "Poświadczenie ubezpieczenia chorobowego", undefined],
+  [/poswiadczenie\s+ubezpieczenia/i, "Poświadczenie ubezpieczenia chorobowego", undefined],
   [/e-?ZLA/i, "e-ZLA – zaświadczenie lekarskie", undefined],
 ];
 
@@ -36,7 +39,7 @@ const toNum = (s: string) => parseFloat(s.replace(/\s/g, "").replace(",", "."));
 
 /** Heurystyczna ekstrakcja danych z tekstu dokumentu ZUS (PDF → tekst). */
 export function parseDocumentText(text: string): ParsedDocument {
-  const t = text.replace(/ /g, " ");
+  const t = fold(text.replace(/ /g, " "));
   const warnings: string[] = [];
   const fields: ParsedDocument["fields"] = [];
   let formType = "Nieznany dokument";
@@ -47,30 +50,32 @@ export function parseDocumentText(text: string): ParsedDocument {
       title = tt;
       break;
     }
-  if (/umow[ayę] o pracę/i.test(t)) title ??= "employment";
+  if (/umow[aye] o prace/i.test(t)) title ??= "employment";
   if (/umow[ayę] zlecenia/i.test(t)) title ??= "mandate";
-  if (/działalnoś[ćc]i? gospodarcz/i.test(t)) title ??= "business";
+  if (/dzialalnosci? gospodarcz/i.test(t)) title ??= "business";
 
   const pesel = t.match(/\b\d{11}\b/);
   if (pesel) fields.push({ label: "PESEL", value: pesel[0].slice(0, 4) + "*******" });
 
   const dates = [...t.matchAll(/\b(\d{2}[.\-/]\d{2}[.\-/]\d{4}|\d{4}-\d{2}-\d{2})\b/g)].map((m) => toIso(m[1])!).filter(Boolean);
 
+  // data przy etykiecie: najpierw w tej samej linii (pola formularza „Etykieta: wartość”), potem do 80 znaków dalej (tabele)
   const near = (re: RegExp) => {
-    const m = t.match(new RegExp(re.source + "[^\\d]{0,80}(\\d{2}[.\\-/]\\d{2}[.\\-/]\\d{4}|\\d{4}-\\d{2}-\\d{2})", "i"));
+    const D = "(\\d{2}[.\\-/]\\d{2}[.\\-/]\\d{4}|\\d{4}-\\d{2}-\\d{2})";
+    const m = t.match(new RegExp(re.source + "[^\\d\\n]{0,80}" + D, "i")) ?? t.match(new RegExp(re.source + "[^\\d]{0,80}" + D, "i"));
     return m ? toIso(m[1]) : undefined;
   };
-  const eventDate = near(/(?:dat[ay] (?:urodzenia|porodu)|poród|urodzeni[ae] dziecka|przewidywan\w* dat\w* porodu)/);
-  const insuredSince = near(/(?:od dnia|zatrudnion\w* od|podlega\w*[^.]{0,40}od|data (?:zgłoszenia|rozpoczęcia))/);
-  const insuredUntil = near(/(?:do dnia|ustani\w*|rozwiązani\w*|zakończeni\w*)/);
+  const eventDate = near(/(?:dat[ay] (?:urodzenia|porodu)|porod|urodzeni[ae] dziecka|przewidywan\w* dat\w* porodu)/);
+  const insuredSince = near(/(?:od dnia|zatrudnion\w* od|podlega\w*[^.]{0,40}od|data (?:zgloszenia|rozpoczecia))/);
+  const insuredUntil = near(/(?:do dnia|ustani\w*|rozwiazani\w*|zakonczeni\w*)/);
 
   // kwoty – szukamy "podstaw"/"wynagrodzeni"/"przeciętn"
-  const amounts = [...t.matchAll(/(?:podstaw\w*|wynagrodzeni\w*|przeciętn\w*|przychód)[^\d]{0,60}(\d{1,3}(?:[  ]?\d{3})*[,.]\d{2})/gi)].map((m) => toNum(m[1]));
+  const amounts = [...t.matchAll(/(?:podstaw\w*|wynagrodzeni\w*|przecietn\w*|przychod)[^\d]{0,60}(\d{1,3}(?:[  ]?\d{3})*[,.]\d{2})/gi)].map((m) => toNum(m[1]));
   const monthlyBase = amounts.length ? Math.max(...amounts.filter((a) => a < 100000)) : undefined;
 
   let insured: boolean | null = null;
   if (/nie\s+podlega\w*\s+ubezpieczeni\w*\s+chorobow/i.test(t) || /brak\s+ubezpieczenia/i.test(t)) insured = false;
-  else if (/podlega\w*\s+ubezpieczeni\w*\s+chorobow/i.test(t) || /ubezpieczenie chorobowe[:\s]+(tak|obowiązkowe|dobrowolne)/i.test(t)) insured = true;
+  else if (/podlega\w*\s+ubezpieczeni\w*\s+chorobow/i.test(t) || /ubezpieczenie chorobowe[:\s]+(tak|obowiazkowe|dobrowolne)/i.test(t)) insured = true;
 
   if (eventDate) fields.push({ label: "Data porodu / zdarzenia", value: eventDate });
   if (insuredSince) fields.push({ label: "Ubezpieczenie od", value: insuredSince });

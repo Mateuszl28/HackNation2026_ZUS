@@ -1,5 +1,5 @@
 import { analyzeDossier } from "@zus/engine";
-import { extractText, getDocumentProxy } from "unpdf";
+import { pdfToText } from "@/lib/pdf-text";
 import { getConfig } from "@/lib/params-store";
 
 /** POST multipart (wiele plików `files`) – analiza zestawu dokumentów jednej sprawy. Pliki nie są zapisywane. */
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       if (f.size > 4 * 1024 * 1024) return Response.json({ error: `Plik ${f.name} > 4 MB` }, { status: 413 });
       const buf = new Uint8Array(await f.arrayBuffer());
       let text = "";
-      if (f.name.toLowerCase().endsWith(".pdf")) text = (await extractText(await getDocumentProxy(buf), { mergePages: true })).text as string;
+      if (f.name.toLowerCase().endsWith(".pdf")) text = (await pdfToText(buf)).text;
       else text = new TextDecoder().decode(buf);
       if (text.trim().length < 20) scans.push(f.name);
       docs.push({ name: f.name, text });

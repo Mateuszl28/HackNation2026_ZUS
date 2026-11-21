@@ -141,12 +141,13 @@ Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) �
 - Ograniczenie prób logowania (5 nieudanych / 15 min → 429) i porównania w stałym czasie.
 - Zasada dwóch par oczu dla decyzji odmownych; notatki wewnętrzne nigdy nie trafiają do API obywatela.
 - Nagłówki: CSP, HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy.
+- Odczyt PDF: warstwa tekstowa + wartości pól interaktywnych formularzy (AcroForm, jak w formularzach ZUS), dopasowanie odporne na brak polskich znaków.
 - Pliki PDF przetwarzane w pamięci (limit 4 MB), nie są zapisywane; statystyki tylko jako anonimowe liczniki kategorii.
 - Produkcja: logowanie mObywatel/login.gov.pl i SSO domenowe ZUS w miejsce symulacji, baza danych z audytem.
 
 ## Testy
 
-- `npm test` – 30 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
+- `npm test` – 32 testy jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
 - `npm run test:api` – 13 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
 - GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu: testy silnika → typecheck → build produkcyjny → start serwera → testy e2e API.
 

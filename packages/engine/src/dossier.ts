@@ -1,5 +1,5 @@
 import { calculate, type CalcInput, type CalcResult, type InsuranceTitle } from "./calculator.ts";
-import { parseDocumentText, type ParsedDocument } from "./parser.ts";
+import { fold, parseDocumentText, type ParsedDocument } from "./parser.ts";
 import { baseFromMonths, monthsFromText } from "./base.ts";
 import { DEFAULT_PARAMS, type Params } from "./params.ts";
 
@@ -38,10 +38,10 @@ const iso = (d: string) => {
 };
 
 function extra(text: string) {
-  const t = text.replace(/ /g, " ");
+  const t = fold(text.replace(/ /g, " "));
   let outcome: "granted" | "refused" | undefined;
-  if (/odmow\w*|odmawia\w*|nie\s+przys[łl]ugu\w*\s+(prawo\s+do\s+)?zasi[łl]/i.test(t)) outcome = "refused";
-  else if (/przyzna(no|je|ł|ła)\b|przyznanie\s+prawa|wyp[łl]acono\s+zasi[łl]|ustalono\s+prawo/i.test(t)) outcome = "granted";
+  if (/odmow\w*|odmawia\w*|nie\s+przyslugu\w*\s+(prawo\s+do\s+)?zasil/i.test(t)) outcome = "refused";
+  else if (/przyzna(no|je|l|la)\b|przyznanie\s+prawa|wyplacono\s+zasil|ustalono\s+prawo/i.test(t)) outcome = "granted";
   const codeB = /kod\w*\s*(literow\w*)?\s*[:\-–]?\s*["„]?B["”]?(?![A-Za-z])/i.test(t) || /\bkod\s+B\b/i.test(t);
   const periods: { from: string; to?: string }[] = [];
   for (const m of t.matchAll(new RegExp(String.raw`od\s*(?:dnia\s*)?${DATE}\s*(?:r\.?)?\s*do\s*(?:dnia\s*)?(${DATE.slice(1, -1)}|nadal|obecnie|chwili\s+obecnej)`, "gi"))) {
