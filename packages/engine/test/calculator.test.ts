@@ -114,3 +114,23 @@ test("asystent rozpoznaje intencje", () => {
   assert.equal(answerQuestion("co przysługuje tacie").intent, "ojciec");
   assert.equal(answerQuestion("mam JDG i zadłużenie").intent, "dzialalnosc");
 });
+
+import { baseFromMonths, last12Months, monthsFromText } from "../src/base.ts";
+
+test("podstawa z 12 miesięcy – uzupełnienie i pominięcie", () => {
+  const m = last12Months("2027-03-15", 8000);
+  m[0] = { ...m[0], gross: 6000, workedDays: 15, requiredDays: 20 }; // uzupełnienie → 8000
+  m[1] = { ...m[1], gross: 2000, workedDays: 5, requiredDays: 20 }; // pominięty
+  const r = baseFromMonths(m);
+  assert.equal(r.monthsCounted, 11);
+  assert.equal(r.average, 8000);
+  assert.equal(r.base, 6903.2);
+  assert.equal(m[0].month, "2026-03");
+});
+
+test("odczyt miesięcy z tekstu Z-3", () => {
+  const r = monthsFromText("03.2026 7 250,00 zł 21 / 21\n04.2026 7 300,00\n2026-05 7400.00");
+  assert.equal(r.length, 3);
+  assert.equal(r[0].gross, 7250);
+  assert.equal(r[0].workedDays, 21);
+});

@@ -1,4 +1,4 @@
-import { parseDocumentText } from "@zus/engine";
+import { baseFromMonths, monthsFromText, parseDocumentText } from "@zus/engine";
 import { extractText, getDocumentProxy } from "unpdf";
 
 /** POST /api/parse – multipart (file: PDF) lub JSON { text } → odczytane dane dokumentu ZUS. Plik nie jest zapisywany. */
@@ -22,7 +22,10 @@ export async function POST(req: Request) {
     }
     const parsed = parseDocumentText(text);
     if (text.trim().length < 20) parsed.warnings.unshift("Dokument nie zawiera warstwy tekstowej (skan) – wprowadź dane ręcznie.");
-    return Response.json({ ...parsed, textPreview: text.slice(0, 600) });
+    const months = monthsFromText(text);
+    const base = months.length >= 3 ? baseFromMonths(months) : null;
+    if (base) parsed.fields.push({ label: `Podstawa z ${base.monthsCounted} mies. (po 13,71%)`, value: base.base.toFixed(2) + " zł" });
+    return Response.json({ ...parsed, months, computedBase: base?.base ?? null, textPreview: text.slice(0, 600) });
   } catch (e) {
     return Response.json({ error: "Nie udało się odczytać dokumentu: " + String(e) }, { status: 400 });
   }

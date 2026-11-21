@@ -24,3 +24,15 @@ h1 { @apply text-2xl sm:text-3xl font-bold tracking-tight; }
 h2 { @apply text-lg font-semibold; }
 
 @media print { header, footer { display: none !important; } body { background: #fff; } }
+
+/* Wysoki kontrast (WCAG) */
+html[data-contrast="high"] {
+  --color-muted: #1f2937;
+  --color-brand: #04532a;
+  --color-brand-dark: #023a1d;
+  --color-accent: #0b3d7a;
+}
+html[data-contrast="high"] body { background: #fff; color: #000; }
+html[data-contrast="high"] .card, html[data-contrast="high"] .input { border-color: #111827 !important; border-width: 2px; }
+html[data-contrast="high"] a:focus-visible, html[data-contrast="high"] button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

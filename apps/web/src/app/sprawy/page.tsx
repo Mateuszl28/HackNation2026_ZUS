@@ -5,7 +5,7 @@ import { CheckCircle2, HelpCircle, Upload, XCircle } from "lucide-react";
 import { DEMO_CASES, calculate, pln, type ParsedDocument } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
 
-type Parsed = ParsedDocument & { textPreview?: string; error?: string; fileName?: string };
+type Parsed = ParsedDocument & { textPreview?: string; error?: string; fileName?: string; computedBase?: number | null };
 
 export default function Cases() {
   const params = useParams();
@@ -31,7 +31,7 @@ export default function Cases() {
 
   const useDoc = (d: Parsed) => {
     const base = DEFAULT_INPUT;
-    const parent = { ...base[who], title: d.insured === false ? ("none" as const) : d.title ?? base[who].title, monthlyBase: d.monthlyBase ?? base[who].monthlyBase, insuredSince: d.insuredSince, insuredUntil: d.insuredUntil, baseAlreadyNet: /Z-3/.test(d.formType) };
+    const parent = { ...base[who], title: d.insured === false ? ("none" as const) : d.title ?? base[who].title, monthlyBase: d.computedBase ?? d.monthlyBase ?? base[who].monthlyBase, insuredSince: d.insuredSince, insuredUntil: d.insuredUntil, baseAlreadyNet: !!d.computedBase || /Z-3/.test(d.formType) };
     update({ input: { ...base, eventDate: d.eventDate ?? base.eventDate, [who]: parent } });
     router.push("/kalkulator");
   };

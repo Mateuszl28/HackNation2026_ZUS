@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { calculate, calculatePregnancySickness, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
+import BaseCalculator from "@/components/BaseCalculator";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
 
 const TITLES: [InsuranceTitle, string][] = [
@@ -40,7 +41,8 @@ function Check({ label, checked, onChange, hint }: { label: string; checked: boo
   );
 }
 
-function ParentForm({ who, p, set }: { who: string; p: ParentInput; set: (p: ParentInput) => void }) {
+function ParentForm({ who, p, set, eventDate }: { who: string; p: ParentInput; set: (p: ParentInput) => void; eventDate: string }) {
+  const [calc, setCalc] = useState(false);
   return (
     <div className="space-y-3">
       <h3 className="font-semibold">{who}</h3>
@@ -52,7 +54,22 @@ function ParentForm({ who, p, set }: { who: string; p: ParentInput; set: (p: Par
       </label>
       {p.title !== "none" && (
         <>
-          <Num label={p.title === "business" ? "Zadeklarowana podstawa składek" : "Średnie wynagrodzenie brutto (12 mies.)"} value={p.monthlyBase} step={100} suffix="zł" onChange={(n) => set({ ...p, monthlyBase: n })} />
+          {p.baseAlreadyNet ? (
+            <div className="rounded-xl bg-brand-light/60 p-3 text-sm">
+              <p className="text-muted">Podstawa wymiaru (wyliczona z 12 mies.)</p>
+              <p className="text-lg font-bold text-brand">{pln(p.monthlyBase)}</p>
+              <div className="flex gap-3 text-xs font-semibold">
+                <button className="text-accent" onClick={() => setCalc(true)}>Zmień</button>
+                <button className="text-muted" onClick={() => set({ ...p, baseAlreadyNet: false, monthlyBase: Math.round(p.monthlyBase / 0.8629) })}>Wpisz kwotę brutto</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Num label={p.title === "business" ? "Zadeklarowana podstawa składek" : "Średnie wynagrodzenie brutto (12 mies.)"} value={p.monthlyBase} step={100} suffix="zł" onChange={(n) => set({ ...p, monthlyBase: n })} />
+              {p.title !== "business" && <button className="-mt-1 text-xs font-semibold text-accent" onClick={() => setCalc(true)}>Wynagrodzenie się zmieniało / było L4? Oblicz z 12 miesięcy →</button>}
+            </>
+          )}
+          {calc && <BaseCalculator eventDate={eventDate} initialGross={p.baseAlreadyNet ? Math.round(p.monthlyBase / 0.8629) : p.monthlyBase} onClose={() => setCalc(false)} onApply={(base) => { set({ ...p, monthlyBase: base, baseAlreadyNet: true }); setCalc(false); }} />}
           <div className="grid grid-cols-2 gap-2">
             <label className="block"><span className="label">Ubezpieczony od</span><input type="date" className="input" value={p.insuredSince ?? ""} onChange={(e) => set({ ...p, insuredSince: e.target.value || undefined })} /></label>
             <label className="block"><span className="label">Do (jeśli kończy się)</span><input type="date" className="input" value={p.insuredUntil ?? ""} onChange={(e) => set({ ...p, insuredUntil: e.target.value || undefined })} /></label>
@@ -165,9 +182,9 @@ export default function CalculatorPage() {
           </section>
 
           <section className="card space-y-5">
-            <ParentForm who={isBirth ? "Matka" : "Rodzic 1"} p={input.mother} set={(p) => set({ mother: p })} />
+            <ParentForm who={isBirth ? "Matka" : "Rodzic 1"} p={input.mother} set={(p) => set({ mother: p })} eventDate={input.eventDate} />
             <hr className="border-slate-200" />
-            <ParentForm who={isBirth ? "Ojciec" : "Rodzic 2"} p={input.father} set={(p) => set({ father: p })} />
+            <ParentForm who={isBirth ? "Ojciec" : "Rodzic 2"} p={input.father} set={(p) => set({ father: p })} eventDate={input.eventDate} />
           </section>
 
           {tab === "mac" && (

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Baby, Bot, Calculator, ChevronDown, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
 import { useSession } from "@/lib/session";
+import A11y from "@/components/A11y";
 
 const PRIMARY = [
   { href: "/pulpit", label: "Pulpit", icon: LayoutDashboard },
@@ -93,6 +94,7 @@ export default function Nav() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <span className="hidden sm:block"><A11y /></span>
             {session.user ? (
               <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-1 sm:pr-3">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-white">{initials}</span>
@@ -135,7 +137,7 @@ export default function Nav() {
           <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl">
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-300" />
             <div className="mb-2 flex items-center justify-between px-1">
-              <p className="font-semibold">Więcej</p>
+              <span className="flex items-center gap-3"><p className="font-semibold">Więcej</p><A11y /></span>
               <button onClick={() => setSheet(false)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-slate-100" aria-label="Zamknij"><X size={18} /></button>
             </div>
             <div className="grid gap-1">

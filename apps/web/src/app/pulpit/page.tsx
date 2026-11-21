@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, FileHeart, MessageSquare, RefreshCw, Wallet, XCircle } from "lucide-react";
-import { calculate, pln, type CalcInput } from "@zus/engine";
+import { calculate, calculatePregnancySickness, diffDays, pln, type CalcInput } from "@zus/engine";
 import { useParams, useSession } from "@/lib/session";
 
 interface ZusData {
@@ -93,9 +93,20 @@ export default function Dashboard() {
               {data.ezla.length === 0 && <p className="text-sm text-muted">Brak zaświadczeń.</p>}
               <ul className="divide-y divide-slate-100">
                 {data.ezla.map((e, k) => (
-                  <li key={k} className="py-2 text-sm flex justify-between gap-2">
-                    <span>{e.from} – {e.to} · {e.doctor}</span>
-                    <span className={`chip ${e.code === "B" ? "bg-brand-light text-brand" : "bg-slate-100"}`}>kod {e.code} {e.code === "B" && "· 100%"}</span>
+                  <li key={k} className="py-2 text-sm">
+                    <div className="flex justify-between gap-2">
+                      <span>{e.from} – {e.to} · {e.doctor}</span>
+                      <span className={`chip ${e.code === "B" ? "bg-brand-light text-brand" : "bg-slate-100"}`}>kod {e.code} {e.code === "B" && "· 100%"}</span>
+                    </div>
+                    {(() => {
+                      const days = diffDays(e.from, e.to) + 1;
+                      const s = calculatePregnancySickness({ parent: data.calcInput.mother, startDate: e.from, days }, params);
+                      return (
+                        <p className="mt-1 text-xs text-muted">
+                          {days} dni · {s.eligible ? <>wynagrodzenie chorobowe {pln(s.employerAmount)} ({s.employerDays} dni) + zasiłek {pln(s.zusAmount)} = <b className="text-ink">{pln(s.total)}</b></> : "brak prawa do zasiłku (okres wyczekiwania)"}
+                        </p>
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>

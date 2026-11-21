@@ -8,3 +8,4 @@ export const pln = (n: number) =>
   n.toLocaleString("pl-PL", { style: "currency", currency: "PLN", maximumFractionDigits: 2 });
 export * from "./planning.ts";
 export * from "./assistant.ts";
+export * from "./base.ts";
