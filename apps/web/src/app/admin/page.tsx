@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Lock, RotateCcw, Save } from "lucide-react";
 import type { Params, SupportOrg } from "@zus/engine";
 
-interface Config { params: Params; support: SupportOrg[] }
+interface Config { params: Params; support: SupportOrg[]; history?: { at: string; version: string; note?: string; changes: { path: string; from: unknown; to: unknown }[] }[] }
 
 // Edytowalne pola liczbowe – ścieżka w obiekcie Params
 const FIELDS: [string, string, number?][] = [
@@ -45,6 +45,7 @@ export default function Admin() {
   const [token, setToken] = useState("");
   const [cfg, setCfg] = useState<Config | null>(null);
   const [msg, setMsg] = useState("");
+  const [note, setNote] = useState("");
   useEffect(() => { fetch("/api/params").then((r) => r.json()).then(setCfg); }, []);
 
   const save = async (body: unknown) => {
@@ -81,8 +82,25 @@ export default function Admin() {
         <h2 className="mb-2">Organizacje wsparcia (JSON)</h2>
         <textarea className="input font-mono text-xs h-56" defaultValue={JSON.stringify(cfg.support, null, 2)} onBlur={(e) => { try { setCfg({ ...cfg, support: JSON.parse(e.target.value) }); setMsg(""); } catch { setMsg("❌ Niepoprawny JSON"); } }} />
       </section>
+      <section className="card">
+        <h2 className="mb-3">Historia zmian (audyt)</h2>
+        {!cfg.history?.length ? <p className="text-sm text-muted">Brak zmian – obowiązują parametry domyślne.</p> : (
+          <ol className="space-y-3">
+            {cfg.history.map((h, i) => (
+              <li key={i} className="rounded-xl border border-slate-200 p-3 text-sm">
+                <p className="font-semibold">{new Date(h.at).toLocaleString("pl-PL")} · v{h.version}{h.note && <span className="font-normal text-muted"> – {h.note}</span>}</p>
+                <ul className="mt-1 font-mono text-xs text-muted">
+                  {h.changes.slice(0, 8).map((c) => <li key={c.path}>{c.path}: <span className="text-red-700 line-through">{JSON.stringify(c.from)}</span> → <span className="text-brand">{JSON.stringify(c.to)}</span></li>)}
+                  {h.changes.length > 8 && <li>… i {h.changes.length - 8} więcej</li>}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
       <div className="flex flex-wrap gap-2 items-center sticky bottom-4">
-        <button className="btn-primary" onClick={() => save(cfg)}><Save size={16} /> Zapisz</button>
+        <input className="input !w-72" placeholder="Podstawa zmiany, np. nowelizacja Dz.U. …" value={note} onChange={(e) => setNote(e.target.value)} />
+        <button className="btn-primary" onClick={() => { save({ ...cfg, note }); setNote(""); }}><Save size={16} /> Zapisz</button>
         <button className="btn-ghost" onClick={() => save({ reset: true })}><RotateCcw size={16} /> Przywróć domyślne</button>
         {msg && <span className="text-sm">{msg}</span>}
       </div>

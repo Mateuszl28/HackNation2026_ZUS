@@ -11,5 +11,5 @@ export async function PUT(req: Request) {
   const body = await req.json();
   if (body?.reset) return Response.json(await resetConfig());
   if (!body?.params?.rates) return Response.json({ error: "Nieprawidłowe dane" }, { status: 400 });
-  return Response.json(await saveConfig(body));
+  return Response.json(await saveConfig({ params: body.params, support: body.support }, body.note));
 }

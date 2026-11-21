@@ -19,7 +19,7 @@ export default function Home() {
         <p className="mt-4 max-w-xl text-white/85 text-lg">Policz zasiłek dla obojga rodziców, zaplanuj urlopy i dowiedz się, gdzie złożyć dokumenty – na podstawie Twojej sytuacji.</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/logowanie" className="btn bg-white text-brand hover:bg-brand-light">Zaloguj przez mObywatel</Link>
-          <Link href="/kalkulator" className="btn border border-white/40 hover:bg-white/10">Policz bez logowania</Link>
+          <Link href="/kreator" className="btn border border-white/40 hover:bg-white/10">Sprawdź uprawnienia w 1 minutę</Link>
         </div>
       </section>
 
