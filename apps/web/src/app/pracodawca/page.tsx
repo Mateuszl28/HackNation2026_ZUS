@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Briefcase, Building2, Landmark, ShieldCheck, Users } from "lucide-react";
 import { employerView, pln } from "@zus/engine";
 import { DEFAULT_INPUT, useParams } from "@/lib/session";
+import Z3Panel from "@/components/Z3Panel";
 
 function Field({ label, value, onChange, suffix, type = "number" }: { label: string; value: string | number; onChange: (v: string) => void; suffix?: string; type?: string }) {
   return (
@@ -94,6 +95,7 @@ export default function Employer() {
           <p className="flex items-start gap-2 rounded-xl bg-sky-50 p-3 text-sm text-sky-900"><ShieldCheck size={18} className="shrink-0" /> Liczbę ubezpieczonych ustala się według stanu na 30 listopada poprzedniego roku (nowi płatnicy – według pierwszego miesiąca zgłoszeń). Zasiłki są finansowane z Funduszu Ubezpieczeń Społecznych – koszt pracodawcy to wyłącznie wynagrodzenie chorobowe.</p>
         </div>
       </div>
+      <Z3Panel />
     </div>
   );
 }
