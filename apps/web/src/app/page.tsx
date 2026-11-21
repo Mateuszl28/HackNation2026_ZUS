@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
-import { Bot, Briefcase, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, ListChecks, Lock, Map, Smartphone, Sparkles } from "lucide-react";
+import { Bot, Briefcase, Shuffle, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, ListChecks, Lock, Map, Smartphone, Sparkles } from "lucide-react";
 import { useSession } from "@/lib/session";
 
 const PUBLIC = [
   { href: "/kreator", icon: Sparkles, title: "Sprawdź uprawnienia w 1 minutę", text: "5 prostych pytań – dowiesz się, czy przysługuje Ci zasiłek i ile może wynieść." },
   { href: "/asystent", icon: Bot, title: "Zapytaj asystenta", text: "81,5% czy 100% + 70%? Co przysługuje tacie? Jak jest przy działalności?" },
   { href: "/przewodnik", icon: Map, title: "Przewodnik krok po kroku", text: "Od ciąży i L4 z kodem „B”, przez poród, po powrót do pracy – z terminami." },
+  { href: "/co-jesli", icon: Shuffle, title: "Co jeśli zmienię pracę?", text: "Podwyżka, koniec umowy, nowa firma w ciąży – sprawdź skutek dla zasiłku, zanim podpiszesz." },
   { href: "/pracodawca", icon: Briefcase, title: "Dla pracodawcy", text: "Kto wypłaca zasiłek, ile kosztuje wynagrodzenie chorobowe, obowiązki i terminy." },
   { href: "/wsparcie", icon: HeartHandshake, title: "Wsparcie w trudnych chwilach", text: "Strata dziecka, wcześniak, ciężka choroba – uprawnienia i organizacje." },
 ];

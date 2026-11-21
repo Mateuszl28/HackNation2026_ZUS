@@ -195,3 +195,21 @@ test("rekomendacja decyzji dla spraw demo", () => {
   assert.equal(rec("martwe-urodzenie").type, "grant");
   assert.equal(rec("natalia-dzielo").type, "refuse");
 });
+
+import { whatIf } from "../src/whatif.ts";
+
+test("co jeśli: podwyżka 2 mies. przed porodem liczy się w 2/12", () => {
+  const c = DEMO_CASES.find((x) => x.id === "anna-etat")!; // poród 2027-03-15, 8500 zł
+  const r = whatIf(c.input, { kind: "raise", who: "mother", date: "2027-01-01", newGross: 14500 });
+  assert.equal(r.afterInput.mother.monthlyBase, 9500); // (8500*10 + 14500*2)/12
+  assert.ok(r.diff > 0);
+  assert.ok(r.risks.some((x) => x.title.includes("Wysoka podwyżka")));
+});
+
+test("co jeśli: koniec umowy przed porodem vs ochrona art. 177 § 3 KP", () => {
+  const c = DEMO_CASES.find((x) => x.id === "anna-etat")!;
+  const lost = whatIf(c.input, { kind: "endContract", who: "mother", date: "2027-02-28" });
+  assert.ok(lost.after < lost.before);
+  const kept = whatIf(c.input, { kind: "endContract", who: "mother", date: "2027-02-28", fixedTerm: true, pregnancyStart: "2026-06-10" });
+  assert.equal(kept.after, kept.before);
+});

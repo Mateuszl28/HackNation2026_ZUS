@@ -13,3 +13,4 @@ export * from "./pregnancy.ts";
 export * from "./checklist.ts";
 export * from "./employer.ts";
 export * from "./decision.ts";
+export * from "./whatif.ts";

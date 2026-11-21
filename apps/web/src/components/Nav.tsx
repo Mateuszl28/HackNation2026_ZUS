@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, X } from "lucide-react";
+import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Shuffle, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
 import NotificationsBell from "@/components/NotificationsBell";
@@ -16,14 +16,15 @@ const L = {
   docs: { href: "/sprawy", label: "Dokumenty", desc: "Wgraj Z-3, ZAM – odczytamy dane", icon: FolderOpen },
   wnioski: { href: "/wnioski", label: "Wnioski", desc: "Urlopy, ZAM, odpis aktu urodzenia", icon: FileText },
   kreator: { href: "/kreator", label: "Sprawdź uprawnienia", desc: "5 pytań – wynik w minutę, bez logowania", icon: Sparkles },
+  cojesli: { href: "/co-jesli", label: "Co jeśli…?", desc: "Zmiana pracy w ciąży – skutek dla zasiłku", icon: Shuffle },
   asystent: { href: "/asystent", label: "Asystent", desc: "Zapytaj o zasiłki i urlopy", icon: Bot },
   przewodnik: { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
   pracodawca: { href: "/pracodawca", label: "Dla pracodawcy", desc: "Kto wypłaca zasiłek, koszty, obowiązki i terminy", icon: Briefcase },
   wsparcie: { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
 } satisfies Record<string, Item>;
 const MENU = {
-  guest: { primary: [L.kreator, L.asystent, L.przewodnik, L.pracodawca, L.wsparcie], more: [L.kalk, L.docs, L.wnioski] },
-  user: { primary: [L.pulpit, L.plan, L.kalk, L.asystent, L.docs], more: [L.wnioski, L.kreator, L.przewodnik, L.pracodawca, L.wsparcie] },
+  guest: { primary: [L.kreator, L.asystent, L.przewodnik, L.pracodawca, L.wsparcie], more: [L.cojesli, L.kalk, L.docs, L.wnioski] },
+  user: { primary: [L.pulpit, L.plan, L.kalk, L.asystent, L.docs], more: [L.wnioski, L.cojesli, L.kreator, L.przewodnik, L.pracodawca, L.wsparcie] },
 };
 
 export default function Nav() {
