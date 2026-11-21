@@ -51,7 +51,7 @@ Parametry zweryfikowano z materiałami ZUS dla uczestników HackNation 2026: za�
 
 ## Sztuczna inteligencja
 
-Obliczenia i ustalanie uprawnień są deterministyczne (reguły z ustawy zasiłkowej i Kodeksu pracy) – nie korzystają z AI. Odczyt dokumentów PDF działa heurystycznie (ekstrakcja tekstu + reguły). AI wykorzystano wyłącznie w procesie tworzenia niektórych elementów kodu.
+Obliczenia i ustalanie uprawnień są deterministyczne (reguły z ustawy zasiłkowej i Kodeksu pracy) – nie korzystają z AI. Odczyt dokumentów PDF działa heurystycznie (ekstrakcja tekstu + reguły). Asystent działa na regułach; opcjonalnie (po ustawieniu `AI_GATEWAY_API_KEY` i `AI_MODEL`) model językowy przeredagowuje jego odpowiedź prostszym językiem – dostaje wyłącznie wyniki kalkulatora i nie zmienia liczb. AI wykorzystano także do tworzenia niektórych elementów kodu.
 
 ## Dane
 
