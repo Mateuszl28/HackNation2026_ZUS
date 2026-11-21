@@ -1,5 +1,7 @@
 # Zasiłkowy Przewodnik Przyszłego Rodzica
 
+[![CI](https://github.com/Mateuszl28/HackNation2026_ZUS/actions/workflows/ci.yml/badge.svg)](https://github.com/Mateuszl28/HackNation2026_ZUS/actions/workflows/ci.yml)
+
 HackNation 2026 · wyzwanie ZUS. Narzędzie (web RWD + aplikacja mobilna), które na podstawie indywidualnej sytuacji ustala uprawnienia do zasiłku chorobowego w ciąży i zasiłku macierzyńskiego, liczy okres i wysokość świadczeń dla obojga rodziców i prowadzi przez wnioski.
 
 ## Dla jury – start w 5 minut
@@ -142,6 +144,7 @@ Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) �
 
 - `npm test` – 26 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
 - `npm run test:api` – 12 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
+- GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu: testy silnika → typecheck → build produkcyjny → start serwera → testy e2e API.
 
 ## Źródła prawne i weryfikacja
 

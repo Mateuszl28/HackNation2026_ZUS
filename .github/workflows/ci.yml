@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalacja zależności
+        run: npm ci --no-audit --no-fund
+
+      - name: Testy silnika (jednostkowe)
+        run: npm test
+
+      - name: Typecheck web
+        run: npx tsc --noEmit -p apps/web
+
+      - name: Build produkcyjny (standalone)
+        run: npm run build
+
+      - name: Start serwera produkcyjnego
+        working-directory: apps/web
+        run: |
+          cp -r .next/static .next/standalone/apps/web/.next/
+          cp -r public .next/standalone/apps/web/
+          (cd .next/standalone && PORT=3000 HOSTNAME=127.0.0.1 node apps/web/server.js > server.log 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:3000/api/params > /dev/null && break; sleep 1; done
+
+      - name: Testy end-to-end REST API
+        run: npm run test:api
+        env:
+          BASE_URL: http://127.0.0.1:3000
+
+      - name: Log serwera (przy błędzie)
+        if: failure()
+        run: cat apps/web/.next/standalone/server.log || true
