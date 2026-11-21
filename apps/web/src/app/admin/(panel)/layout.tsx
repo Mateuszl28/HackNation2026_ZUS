@@ -37,7 +37,7 @@ function SaveBar() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { official, logout, saved, reset } = useAdmin();
+  const { official, roleLabel, logout, saved, reset } = useAdmin();
   const [open, setOpen] = useState(false);
   const active = (h: string) => (h === "/admin" ? path === "/admin" : path.startsWith(h));
 
@@ -83,7 +83,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden items-center gap-2 rounded-full bg-slate-100 py-1 pl-1 pr-3 text-sm sm:flex">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-[#123a5c] text-white"><UserRound size={15} /></span>
-              {official || "…"} <span className="text-xs text-muted">· urzędnik</span>
+              {official || "…"} <span className="text-xs text-muted">· {roleLabel || "…"}</span>
             </span>
             <button onClick={logout} className="btn-ghost !py-1.5 text-sm"><LogOut size={15} /> Wyloguj</button>
           </div>

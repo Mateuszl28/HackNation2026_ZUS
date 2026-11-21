@@ -1,5 +1,5 @@
 import { calculate, DEMO_CASES, type DecisionType } from "@zus/engine";
-import { adminFromRequest, unauthorized } from "@/lib/admin-auth";
+import { sessionFromRequest, unauthorized } from "@/lib/admin-auth";
 import { addDecision } from "@/lib/cases-store";
 import { getConfig } from "@/lib/params-store";
 
@@ -7,8 +7,9 @@ const TYPES: DecisionType[] = ["grant", "refuse", "request"];
 
 /** POST { type, justification, legalBasis[], missingDocs[] } – wydanie decyzji w sprawie (tylko urzędnik). */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const official = await adminFromRequest(req);
-  if (!official) return unauthorized();
+  const session = await sessionFromRequest(req);
+  if (!session) return unauthorized();
+  const official = session.login;
   const { id } = await params;
   const c = DEMO_CASES.find((x) => x.id === id);
   if (!c) return Response.json({ error: "Nie znaleziono sprawy" }, { status: 404 });
@@ -29,6 +30,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     missingDocs: b.type === "request" ? (Array.isArray(b.missingDocs) ? b.missingDocs : []).map(String).slice(0, 20) : undefined,
     benefit,
     total: b.type === "grant" ? r.total : undefined,
+    // zasada dwóch par oczu: odmowa wydana przez urzędnika wymaga zatwierdzenia kierownika
+    status: b.type === "refuse" && session.role !== "manager" ? "pending_approval" : "published",
+    approvedBy: b.type === "refuse" && session.role === "manager" ? official : undefined,
   });
   return Response.json(d);
 }

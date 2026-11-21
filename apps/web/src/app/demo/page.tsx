@@ -25,8 +25,8 @@ export default function DemoPage() {
     update({ user: { name: c.title.split(" – ")[0], caseId }, input: c.input, applications: [] });
     router.push(to);
   };
-  const asOfficial = async (to: string) => {
-    const r = await fetch("/api/demo/official", { method: "POST" });
+  const asOfficial = async (to: string, role: "official" | "manager" = "official") => {
+    const r = await fetch(`/api/demo/official?role=${role}`, { method: "POST" });
     if (r.ok) router.push(to);
     else setMsg("Szybkie logowanie wyłączone – zaloguj się na /admin/logowanie.");
   };
@@ -47,7 +47,7 @@ export default function DemoPage() {
       <section className="rounded-3xl bg-gradient-to-br from-[#123a5c] to-[#0c2740] p-6 text-white sm:p-10">
         <p className="chip mb-3 bg-white/15 text-white">Dla jury HackNation 2026</p>
         <h1 className="!text-3xl sm:!text-4xl">Demo w 5 minut</h1>
-        <p className="mt-3 max-w-2xl text-white/80">Trzy role w jednym procesie: <b>obywatel</b> planuje i składa wniosek, <b>pracodawca</b> wysyła Z-3, <b>urzędnik ZUS</b> weryfikuje i wydaje decyzję. Logowanie mObywatel i dane z ZUS są symulowane. Dane do panelu urzędnika: <code className="rounded bg-white/15 px-1">urzednik</code> / <code className="rounded bg-white/15 px-1">zus2026</code>.</p>
+        <p className="mt-3 max-w-2xl text-white/80">Trzy role w jednym procesie: <b>obywatel</b> planuje i składa wniosek, <b>pracodawca</b> wysyła Z-3, <b>urzędnik ZUS</b> weryfikuje i wydaje decyzję. Logowanie mObywatel i dane z ZUS są symulowane. Panel urzędnika: <code className="rounded bg-white/15 px-1">urzednik</code> / <code className="rounded bg-white/15 px-1">zus2026</code>, kierownik: <code className="rounded bg-white/15 px-1">kierownik</code> / <code className="rounded bg-white/15 px-1">zus2026k</code>.</p>
         <div className="mt-6 flex flex-wrap gap-2">
           <button className="btn bg-white text-[#123a5c]" onClick={() => run(STEPS[0].action)}><Play size={16} /> Zacznij scenariusz</button>
           <button className="btn border border-white/40 hover:bg-white/10" onClick={reset}><RotateCcw size={16} /> Wyczyść dane demo</button>
@@ -93,8 +93,9 @@ export default function DemoPage() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <button className="card !p-5 text-left transition hover:border-[#123a5c]" onClick={() => asOfficial("/admin")}><Landmark className="mb-2 text-[#123a5c]" /><p className="font-semibold">Panel urzędnika</p><p className="text-sm text-muted">Kolejka spraw, decyzje, parametry, statystyki</p></button>
+        <button className="card !p-5 text-left transition hover:border-violet-600" onClick={() => asOfficial("/admin/sprawy", "manager")}><Landmark className="mb-2 text-violet-700" /><p className="font-semibold">Panel kierownika</p><p className="text-sm text-muted">Zatwierdzanie decyzji odmownych (zasada dwóch par oczu)</p></button>
         <button className="card !p-5 text-left transition hover:border-brand" onClick={() => router.push("/pracodawca")}><Briefcase className="mb-2 text-brand" /><p className="font-semibold">Pracodawca</p><p className="text-sm text-muted">Koszty, obowiązki, wysyłka Z-3</p></button>
         <button className="card !p-5 text-left transition hover:border-brand" onClick={() => router.push("/kreator")}><Sparkles className="mb-2 text-brand" /><p className="font-semibold">Bez logowania</p><p className="text-sm text-muted">Kreator, asystent, „Co jeśli…?”</p></button>
       </section>

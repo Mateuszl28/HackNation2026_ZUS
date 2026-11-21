@@ -8,6 +8,8 @@ export interface AdminConfig { params: Params; support: SupportOrg[]; history?: 
 
 interface Ctx {
   official: string;
+  role: "official" | "manager" | "";
+  roleLabel: string;
   saved: AdminConfig | null; // stan na serwerze
   draft: AdminConfig | null; // edytowany
   setDraft: (c: AdminConfig) => void;
@@ -24,13 +26,15 @@ const C = createContext<Ctx | null>(null);
 export function AdminProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [official, setOfficial] = useState("");
+  const [role, setRole] = useState<"official" | "manager" | "">("");
+  const [roleLabel, setRoleLabel] = useState("");
   const [saved, setSaved] = useState<AdminConfig | null>(null);
   const [draft, setDraft] = useState<AdminConfig | null>(null);
   const [msg, setMsg] = useState<Ctx["msg"]>(null);
 
   useEffect(() => {
     fetch("/api/params").then((r) => r.json()).then((c) => { setSaved(c); setDraft(structuredClone(c)); });
-    fetch("/api/admin/session").then((r) => r.json()).then((j) => (j.authenticated ? setOfficial(j.login) : router.replace("/admin/logowanie")));
+    fetch("/api/admin/session").then((r) => r.json()).then((j) => { if (!j.authenticated) return router.replace("/admin/logowanie"); setOfficial(j.login); setRole(j.role); setRoleLabel(j.roleLabel); });
   }, [router]);
 
   const dirty = useMemo(() => !!saved && !!draft && JSON.stringify({ p: saved.params, s: saved.support }) !== JSON.stringify({ p: draft.params, s: draft.support }), [saved, draft]);
@@ -49,6 +53,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const value: Ctx = {
     official,
+    role,
+    roleLabel,
     saved,
     draft,
     setDraft,

@@ -25,6 +25,11 @@ export interface Decision {
   missingDocs?: string[];
   benefit?: { who: string; label: string; from: string; to: string; monthly: number; total: number }[];
   total?: number;
+  /** Zasada dwóch par oczu: odmowa urzędnika czeka na zatwierdzenie kierownika. Brak pola = opublikowana. */
+  status?: "published" | "pending_approval" | "returned";
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalComment?: string;
 }
 
 export interface StoredDocument {
@@ -102,6 +107,15 @@ export async function addDecision(d: Decision) {
   return d;
 }
 
+export async function reviewDecision(id: string, patch: Pick<Decision, "status" | "approvedBy" | "approvalComment">) {
+  const s = await load();
+  const d = s.decisions.find((x) => x.id === id);
+  if (!d || d.status !== "pending_approval") return null;
+  Object.assign(d, patch, { approvedAt: new Date().toISOString() });
+  await persist();
+  return d;
+}
+
 export async function addDocument(d: StoredDocument) {
   const s = await load();
   s.documents = [d, ...(s.documents ?? [])].slice(0, 1000);
@@ -109,11 +123,14 @@ export async function addDocument(d: StoredDocument) {
   return d;
 }
 
-export async function forCase(caseId: string) {
+export const isPublished = (d: Decision) => !d.status || d.status === "published";
+
+/** Dane sprawy. `citizen: true` – tylko decyzje opublikowane (bez oczekujących na zatwierdzenie i zwróconych). */
+export async function forCase(caseId: string, opts: { citizen?: boolean } = {}) {
   const s = await load();
   return {
     applications: s.applications.filter((a) => a.caseId === caseId),
-    decisions: s.decisions.filter((d) => d.caseId === caseId),
+    decisions: s.decisions.filter((d) => d.caseId === caseId && (!opts.citizen || isPublished(d))),
     documents: (s.documents ?? []).filter((d) => d.caseId === caseId),
     appeals: (s.appeals ?? []).filter((a) => a.caseId === caseId),
   };

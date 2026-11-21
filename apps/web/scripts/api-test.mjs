@@ -7,9 +7,10 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const LOGIN = process.env.ADMIN_LOGIN ?? "urzednik";
 const PASSWORD = process.env.ADMIN_PASSWORD ?? "zus2026";
 let cookie = "";
+let managerCookie = "";
 
 const api = (path, opts = {}) =>
-  fetch(BASE + path, { ...opts, headers: { "content-type": "application/json", ...(opts.auth ? { cookie } : {}), ...(opts.headers ?? {}) }, body: opts.json ? JSON.stringify(opts.json) : opts.body });
+  fetch(BASE + path, { ...opts, headers: { "content-type": "application/json", ...(opts.auth ? { cookie: opts.auth === "manager" ? managerCookie : cookie } : {}), ...(opts.headers ?? {}) }, body: opts.json ? JSON.stringify(opts.json) : opts.body });
 
 test("GET /api/params – parametry publiczne", async () => {
   const r = await api("/api/params");
@@ -58,6 +59,10 @@ test("Logowanie urzędnika – złe i dobre hasło", async () => {
   assert.equal(r.status, 200);
   cookie = (r.headers.get("set-cookie") ?? "").split(";")[0];
   assert.match(cookie, /^zpr_admin=/);
+  const m = await api("/api/admin/session", { method: "POST", json: { login: process.env.MANAGER_LOGIN ?? "kierownik", password: process.env.MANAGER_PASSWORD ?? "zus2026k" } });
+  assert.equal(m.status, 200);
+  assert.equal((await m.json()).role, "manager");
+  managerCookie = (m.headers.get("set-cookie") ?? "").split(";")[0];
 });
 
 test("Podrobione ciasteczko jest odrzucane", async () => {
@@ -83,6 +88,8 @@ test("Obieg: wniosek obywatela → wezwanie → dokument → decyzja widoczna u 
   assert.equal(after.docsAfterDecision, true);
 
   const dec = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: true, json: { type: "refuse", justification: "Brak tytułu do ubezpieczenia chorobowego.", legalBasis: ["art. 29"] } })).json();
+  assert.equal(dec.status, "pending_approval");
+  await api(`/api/admin/cases/${caseId}/approve`, { method: "POST", auth: "manager", json: { decisionId: dec.id, action: "approve" } });
   const mine = await (await api(`/api/applications?caseId=${caseId}`)).json();
   assert.equal(mine.decisions[0].id, dec.id);
   assert.equal("notes" in mine, false, "notatki urzędnika nie mogą trafiać do obywatela");
@@ -98,6 +105,7 @@ test("Eksport CSV wymaga sesji i zwraca CSV", async () => {
 test("Odwołanie: odmowa → odwołanie obywatela → uwzględnienie przez ZUS (samokontrola)", async () => {
   const caseId = "natalia-dzielo";
   const dec = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: true, json: { type: "refuse", justification: "Brak tytułu do ubezpieczenia chorobowego.", legalBasis: ["art. 29"] } })).json();
+  await api(`/api/admin/cases/${caseId}/approve`, { method: "POST", auth: "manager", json: { decisionId: dec.id, action: "approve" } });
   assert.equal((await api("/api/applications/appeal", { method: "POST", json: { caseId, decisionId: dec.id, text: "za krótko" } })).status, 400);
   const ap = await (await api("/api/applications/appeal", { method: "POST", json: { caseId, decisionId: dec.id, text: "W dniu porodu miałam umowę zlecenia z dobrowolnym chorobowym – załączam umowę." } })).json();
   assert.equal(ap.status, "pending");
@@ -109,4 +117,20 @@ test("Odwołanie: odmowa → odwołanie obywatela → uwzględnienie przez ZUS (
   assert.equal(res.status, "accepted");
   const mine = await (await api(`/api/applications?caseId=${caseId}`)).json();
   assert.equal(mine.appeals[0].status, "accepted");
+});
+
+test("Zasada dwóch par oczu: odmowa urzędnika niewidoczna dla obywatela do zatwierdzenia przez kierownika", async () => {
+  const caseId = "natalia-dzielo";
+  const dec = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: true, json: { type: "refuse", justification: "Test zasady dwóch par oczu – odmowa.", legalBasis: ["art. 29"] } })).json();
+  assert.equal(dec.status, "pending_approval");
+  let mine = await (await api(`/api/applications?caseId=${caseId}`)).json();
+  assert.ok(!mine.decisions.some((x) => x.id === dec.id), "obywatel nie może widzieć niezatwierdzonej odmowy");
+  assert.equal((await api(`/api/admin/cases/${caseId}/approve`, { method: "POST", auth: true, json: { decisionId: dec.id, action: "approve" } })).status, 403, "urzędnik nie może sam zatwierdzić");
+  assert.equal((await api(`/api/admin/cases/${caseId}/approve`, { method: "POST", auth: "manager", json: { decisionId: dec.id, action: "return" } })).status, 400, "zwrot wymaga komentarza");
+  const ret = await (await api(`/api/admin/cases/${caseId}/approve`, { method: "POST", auth: "manager", json: { decisionId: dec.id, action: "return", comment: "Uzupełnij uzasadnienie o datę ustania umowy." } })).json();
+  assert.equal(ret.status, "returned");
+  mine = await (await api(`/api/applications?caseId=${caseId}`)).json();
+  assert.ok(!mine.decisions.some((x) => x.id === dec.id), "zwrócona decyzja nie trafia do obywatela");
+  const byManager = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: "manager", json: { type: "refuse", justification: "Odmowa wydana przez kierownika.", legalBasis: ["art. 29"] } })).json();
+  assert.equal(byManager.status, "published");
 });

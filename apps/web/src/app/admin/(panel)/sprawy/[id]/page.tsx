@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Check, Scale, StickyNote, FileText, Gavel, Info, OctagonAlert, Printer, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
 import { DECISION_LABELS, pln, type CalcResult, type DecisionType, type DemoCase, type Recommendation } from "@zus/engine";
 import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
+import { useAdmin } from "@/components/admin/AdminContext";
 
 interface Detail {
   case: DemoCase;
@@ -45,6 +46,8 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
   const [issued, setIssued] = useState<DecisionDoc | null>(null);
   const [note, setNote] = useState("");
   const [appealRes, setAppealRes] = useState("");
+  const [approvalComment, setApprovalComment] = useState("");
+  const { role } = useAdmin();
 
   const load = () =>
     fetch(`/api/admin/cases/${id}`).then(async (r) => {
@@ -209,6 +212,50 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
 
         {/* ---------- decyzja ---------- */}
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+          {d.decisions.filter((x) => x.status === "pending_approval" || x.status === "returned").slice(0, 1).map((x) => (
+            <section key={`appr-${x.id}`} className={`card border-2 ${x.status === "pending_approval" ? "border-violet-300" : "border-amber-300"}`}>
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-700"><ShieldCheck size={14} /> Zasada dwóch par oczu</p>
+              {x.status === "pending_approval" ? (
+                <>
+                  <p className="font-semibold">Odmowa {x.id} czeka na zatwierdzenie kierownika</p>
+                  <p className="text-xs text-muted">Wydał: {x.by} · {new Date(x.at).toLocaleString("pl-PL")}. Obywatel nie widzi decyzji do czasu zatwierdzenia.</p>
+                  <p className="mt-2 whitespace-pre-line rounded-lg bg-slate-50 p-2 text-sm">{x.justification}</p>
+                  {role === "manager" ? (
+                    <>
+                      <textarea className="input mt-2 min-h-16 text-sm" placeholder="Komentarz (wymagany przy zwrocie)…" value={approvalComment} onChange={(e) => setApprovalComment(e.target.value)} />
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {(["approve", "return"] as const).map((act) => (
+                          <button
+                            key={act}
+                            className={act === "approve" ? "btn-primary !bg-violet-700 !py-2 text-sm hover:!bg-violet-800" : "btn-ghost !py-2 text-sm"}
+                            onClick={async () => {
+                              const r = await fetch(`/api/admin/cases/${id}/approve`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ decisionId: x.id, action: act, comment: approvalComment }) });
+                              const j = await r.json().catch(() => ({}));
+                              if (!r.ok) return setErr(j.error ?? "Błąd");
+                              setApprovalComment("");
+                              load();
+                            }}
+                          >
+                            {act === "approve" ? "Zatwierdź i opublikuj" : "Zwróć do poprawy"}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-2 rounded-lg bg-violet-50 p-2 text-sm text-violet-900">Zaloguj się jako kierownik, aby zatwierdzić lub zwrócić decyzję.</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold">Decyzja {x.id} zwrócona do poprawy</p>
+                  <p className="text-xs text-muted">{x.approvedBy} · {x.approvedAt && new Date(x.approvedAt).toLocaleString("pl-PL")}</p>
+                  <p className="mt-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">{x.approvalComment}</p>
+                  <p className="mt-1 text-xs text-muted">Popraw uzasadnienie lub rozstrzygnięcie poniżej i wydaj decyzję ponownie.</p>
+                </>
+              )}
+            </section>
+          ))}
+
           {d.appeals.map((a) => (
             <section key={a.id} className={`card border-2 ${a.status === "pending" ? "border-red-300" : "border-slate-200"}`}>
               <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-700"><Scale size={14} /> Odwołanie od decyzji {a.decisionId}</p>
@@ -314,7 +361,7 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
               <ul className="space-y-2 text-sm">
                 {d.decisions.map((x) => (
                   <li key={x.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 p-2">
-                    <span><b>{DECISION_LABELS[x.type]}</b><span className="block text-xs text-muted">{x.id} · {new Date(x.at).toLocaleString("pl-PL")} · {x.by}</span></span>
+                    <span><b>{DECISION_LABELS[x.type]}</b>{x.status === "pending_approval" && <span className="chip ml-1 bg-violet-100 text-violet-800">czeka na kierownika</span>}{x.status === "returned" && <span className="chip ml-1 bg-amber-100 text-amber-800">zwrócona</span>}<span className="block text-xs text-muted">{x.id} · {new Date(x.at).toLocaleString("pl-PL")} · {x.by}{x.approvedBy ? ` · zatw. ${x.approvedBy}` : ""}</span></span>
                     <button className="text-xs font-semibold text-accent" onClick={() => setIssued(x)}>pismo</button>
                   </li>
                 ))}
@@ -328,7 +375,7 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-4 print:static print:bg-white print:p-0" role="dialog" aria-modal>
           <div className="mx-auto max-w-2xl space-y-3">
             <div className="flex items-center justify-between gap-2 print:hidden">
-              <p className="rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand">✓ Zapisano – obywatel widzi pismo na swoim pulpicie</p>
+              <p className="rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand">{issued.status === "pending_approval" ? "✓ Zapisano – odmowa czeka na zatwierdzenie kierownika (obywatel jej jeszcze nie widzi)" : "✓ Zapisano – obywatel widzi pismo na swoim pulpicie"}</p>
               <div className="flex gap-2">
                 <button className="btn-primary !py-1.5 text-sm" onClick={() => window.print()}><Printer size={16} /> Drukuj</button>
                 <button className="btn-ghost !py-1.5 text-sm" onClick={() => setIssued(null)}>Zamknij</button>

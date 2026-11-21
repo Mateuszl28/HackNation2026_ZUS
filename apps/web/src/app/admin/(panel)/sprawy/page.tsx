@@ -17,7 +17,7 @@ interface Row {
   manualChecks: number;
   applications: number;
   lastApplicationAt: number | null;
-  decision: { type: DecisionType; at: string; by: string } | null;
+  decision: { type: DecisionType; at: string; by: string; status: "published" | "pending_approval" | "returned" } | null;
   documents: number;
   docsAfterDecision: boolean;
   pendingAppeal: boolean;
@@ -29,6 +29,8 @@ const REC_STYLE: Record<DecisionType, string> = { grant: "bg-brand-light text-br
 const REC_SHORT: Record<DecisionType, string> = { grant: "przyznać", refuse: "odmówić", request: "wezwać" };
 
 function statusOf(r: Row) {
+  if (r.decision?.status === "pending_approval") return { key: "approval", label: "Do zatwierdzenia przez kierownika", cls: "bg-violet-100 text-violet-800" };
+  if (r.decision?.status === "returned") return { key: "todo", label: "Zwrócona do poprawy", cls: "bg-amber-100 text-amber-800" };
   if (r.pendingAppeal) return { key: "todo", label: "Odwołanie – do rozpatrzenia", cls: "bg-red-100 text-red-800" };
   if (r.docsAfterDecision) return { key: "todo", label: "Uzupełniono dokumenty – do decyzji", cls: "bg-amber-100 text-amber-800" };
   if (r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt)) return { key: "done", label: DECISION_LABELS[r.decision.type], cls: "bg-slate-100 text-slate-700" };
@@ -39,7 +41,7 @@ function statusOf(r: Row) {
 export default function CasesPage() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [tab, setTab] = useState<"all" | "todo" | "done">("todo");
+  const [tab, setTab] = useState<"all" | "todo" | "approval" | "done">("todo");
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function CasesPage() {
       .filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase()))
       .sort((a, b) => Number(b.pendingAppeal) - Number(a.pendingAppeal) || (a.sla?.left ?? 999) - (b.sla?.left ?? 999) || (b.lastApplicationAt ?? 0) - (a.lastApplicationAt ?? 0));
   }, [rows, tab, q]);
-  const count = (k: "todo" | "done") => rows?.filter((r) => statusOf(r).key === k).length ?? 0;
+  const count = (k: "todo" | "approval" | "done") => rows?.filter((r) => statusOf(r).key === k).length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -67,7 +69,7 @@ export default function CasesPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-xl bg-white p-1 text-sm shadow-sm">
-          {([["todo", `Do decyzji (${count("todo")})`], ["done", `Rozpatrzone (${count("done")})`], ["all", "Wszystkie"]] as const).map(([k, l]) => (
+          {([["todo", `Do decyzji (${count("todo")})`], ["approval", `Do zatwierdzenia (${count("approval")})`], ["done", `Rozpatrzone (${count("done")})`], ["all", "Wszystkie"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} className={`rounded-lg px-3 py-1.5 ${tab === k ? "bg-[#123a5c] font-semibold text-white" : "text-slate-600"}`}>{l}</button>
           ))}
         </div>

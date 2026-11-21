@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         sla: sla(
           [...apps.map((a) => a.sentAt), ...docs.map((d) => d.at)].filter((t) => !last || t > new Date(last.at).getTime()).sort((a, b) => a - b)[0] ?? null,
         ),
-        decision: last ? { type: last.type, at: last.at, by: last.by } : null,
+        decision: last ? { type: last.type, at: last.at, by: last.by, status: last.status ?? "published" } : null,
       };
     }),
   );

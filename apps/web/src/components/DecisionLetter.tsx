@@ -11,6 +11,10 @@ export interface DecisionDoc {
   missingDocs?: string[];
   benefit?: { who: string; label: string; from: string; to: string; monthly: number; total: number }[];
   total?: number;
+  status?: "published" | "pending_approval" | "returned";
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalComment?: string;
 }
 
 const fmtPL = (iso: string) => new Date(iso).toLocaleDateString("pl-PL");

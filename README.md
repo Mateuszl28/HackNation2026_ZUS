@@ -4,7 +4,7 @@ HackNation 2026 · wyzwanie ZUS. Narzędzie (web RWD + aplikacja mobilna), któr
 
 ## Dla jury – start w 5 minut
 
-Otwórz **`/demo`**: scenariusz krok po kroku (obywatel → urzędnik → pracodawca → decyzja), szybkie wejście w każdą z 8 spraw, logowanie urzędnika jednym kliknięciem i reset danych. Panel urzędnika: `urzednik` / `zus2026`. Tryb demo (szybkie logowanie i reset) wyłącza się w produkcji zmienną `DEMO_MODE=off`.
+Otwórz **`/demo`**: scenariusz krok po kroku (obywatel → urzędnik → pracodawca → decyzja), szybkie wejście w każdą z 8 spraw, logowanie urzędnika jednym kliknięciem i reset danych. Panel urzędnika: `urzednik` / `zus2026`; kierownik (zatwierdza odmowy – zasada dwóch par oczu): `kierownik` / `zus2026k`. Tryb demo (szybkie logowanie i reset) wyłącza się w produkcji zmienną `DEMO_MODE=off`.
 
 ## Struktura
 
@@ -32,6 +32,7 @@ apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym si
 | Upload / wybór wniosków PDF, weryfikacja ubezpieczenia | `/sprawy`, `POST /api/parse` |
 | Pracodawca (płatnik) wystawia Z-3 / Z-3a z 12 miesięcy wynagrodzeń i wysyła do sprawy w ZUS – urzędnik widzi je z kontrolą krzyżową | `/pracodawca` |
 | Obsługa spraw przez urzędnika: kolejka spraw, karta osoby (dane ZUS, wnioski, wyliczenie), rekomendacja systemu, decyzja: przyznanie / odmowa / wezwanie – widoczna u obywatela | `/admin/sprawy` |
+| Zasada dwóch par oczu: odmowa wydana przez urzędnika czeka na zatwierdzenie kierownika (zatwierdź / zwróć do poprawy); obywatel widzi tylko decyzje opublikowane | `/admin/sprawy` |
 | Odwołanie od decyzji: obywatel składa w aplikacji (termin 1 mies.), ZUS uwzględnia (samokontrola, art. 477⁹ KPC) lub przekazuje do sądu | `/pulpit`, `/admin/sprawy` |
 | Panel urzędnika: parametry prawne, organizacje, statystyki, historia zmian | `/admin` – logowanie urzędnika (demo: `urzednik` / `zus2026`; env `ADMIN_LOGIN`, `ADMIN_PASSWORD`, `ADMIN_SECRET`) |
 

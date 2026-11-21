@@ -17,5 +17,5 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const caseId = new URL(req.url).searchParams.get("caseId");
   if (!known(caseId)) return Response.json({ error: "Nieznana sprawa" }, { status: 404 });
-  return Response.json(await forCase(caseId!));
+  return Response.json(await forCase(caseId!, { citizen: true }));
 }
