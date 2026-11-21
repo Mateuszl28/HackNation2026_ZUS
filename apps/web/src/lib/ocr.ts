@@ -22,8 +22,9 @@ async function getWorker(): Promise<Worker> {
 }
 
 export async function ocrImage(img: Uint8Array): Promise<{ text: string; confidence: number }> {
-  const w = await getWorker();
-  const { data } = await w.recognize(Buffer.from(img));
+  const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error("OCR: przekroczono limit czasu")), 90_000));
+  const w = await Promise.race([getWorker(), timeout]);
+  const { data } = await Promise.race([w.recognize(Buffer.from(img)), timeout]);
   return { text: data.text, confidence: Math.round(data.confidence) };
 }
 

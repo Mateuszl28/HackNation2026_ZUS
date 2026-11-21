@@ -39,7 +39,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // OCR: natywny canvas i Tesseract poza bundlerem; model językowy dołączony do obrazu standalone
   serverExternalPackages: ["tesseract.js", "@napi-rs/canvas", "@tesseract.js-data/pol"],
-  outputFileTracingIncludes: { "/api/**": ["../../node_modules/@tesseract.js-data/pol/4.0.0/**", "../../node_modules/tesseract.js-core/**"] },
+  outputFileTracingIncludes: {
+    "/api/**": [
+      "../../node_modules/@tesseract.js-data/pol/4.0.0/**",
+      ...["tesseract.js", "tesseract.js-core", "bmp-js", "is-url", "node-fetch", "whatwg-url", "tr46", "webidl-conversions", "regenerator-runtime", "wasm-feature-detect", "zlibjs", "idb-keyval"].map((m) => `../../node_modules/${m}/**`),
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
