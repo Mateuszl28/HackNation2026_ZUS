@@ -17,6 +17,7 @@ export async function GET(req: Request) {
       const docs = (store.documents ?? []).filter((d) => d.caseId === c.id);
       const last = store.decisions.find((d) => d.caseId === c.id);
       const lastDocAt = docs[0]?.at ?? null;
+      const pendingAppeal = (store.appeals ?? []).some((a) => a.caseId === c.id && a.status === "pending");
       return {
         id: c.id,
         name: c.title.split(" – ")[0],
@@ -30,6 +31,7 @@ export async function GET(req: Request) {
         applications: apps.length,
         lastApplicationAt: Math.max(apps[0]?.sentAt ?? 0, lastDocAt ?? 0) || null,
         documents: docs.length,
+        pendingAppeal,
         docsAfterDecision: !!(last && lastDocAt && lastDocAt > new Date(last.at).getTime()),
         sla: sla(
           [...apps.map((a) => a.sentAt), ...docs.map((d) => d.at)].filter((t) => !last || t > new Date(last.at).getTime()).sort((a, b) => a - b)[0] ?? null,

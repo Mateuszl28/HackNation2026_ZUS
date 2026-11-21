@@ -14,6 +14,10 @@ export default function ApplicationsTracker() {
   const [open, setOpen] = useState<DecisionDoc | null>(null);
   const [docs, setDocs] = useState<{ name: string; inResponseTo?: string; at: number }[]>([]);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [appeals, setAppeals] = useState<{ id: string; decisionId: string; status: string; resolution?: string; at: string }[]>([]);
+  const [appealOpen, setAppealOpen] = useState(false);
+  const [appealText, setAppealText] = useState("");
+  const [appealErr, setAppealErr] = useState("");
   const apps = session.applications ?? [];
   const caseId = session.user?.caseId;
 
@@ -21,7 +25,7 @@ export default function ApplicationsTracker() {
     if (!caseId) return;
     fetch(`/api/applications?caseId=${encodeURIComponent(caseId)}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (j) { setDecisions(j.decisions ?? []); setDocs(j.documents ?? []); } })
+      .then((j) => { if (j) { setDecisions(j.decisions ?? []); setDocs(j.documents ?? []); setAppeals(j.appeals ?? []); } })
       .catch(() => {});
   }, [caseId]);
 
@@ -50,6 +54,50 @@ export default function ApplicationsTracker() {
           <button className="btn-ghost !py-1.5 text-sm" onClick={() => setOpen(latest)}>Zobacz pismo</button>
         </div>
       )}
+
+      {latest && latest.type !== "request" && (() => {
+        const ap = appeals.find((a) => a.decisionId === latest.id);
+        if (ap)
+          return (
+            <div className={`mb-4 rounded-xl border p-3 text-sm ${ap.status === "pending" ? "border-amber-200 bg-amber-50" : ap.status === "accepted" ? "border-brand/30 bg-brand-light" : "border-slate-200 bg-slate-50"}`}>
+              <p className="font-semibold">Odwołanie {ap.id}: {ap.status === "pending" ? "w rozpatrzeniu przez ZUS" : ap.status === "accepted" ? "uwzględnione – ZUS zmieni decyzję" : "przekazane do sądu"}</p>
+              {ap.resolution && <p className="text-muted">{ap.resolution}</p>}
+            </div>
+          );
+        const daysLeft = 31 - Math.floor((Date.now() - new Date(latest.at).getTime()) / 86400000);
+        if (daysLeft <= 0) return null;
+        return (
+          <div className="mb-4 rounded-xl border border-slate-200 p-3 text-sm">
+            {!appealOpen ? (
+              <button className="font-semibold text-accent" onClick={() => setAppealOpen(true)}>Nie zgadzasz się z decyzją? Złóż odwołanie (zostało {daysLeft} dni)</button>
+            ) : (
+              <>
+                <p className="mb-1 font-semibold">Odwołanie od decyzji {latest.id}</p>
+                <p className="mb-2 text-xs text-muted">Odwołanie składa się za pośrednictwem ZUS do sądu okręgowego. ZUS może je uwzględnić i zmienić decyzję bez sprawy w sądzie.</p>
+                <textarea className="input min-h-24" placeholder="Napisz, z czym się nie zgadzasz i dlaczego (np. ubezpieczenie trwało w dniu porodu – załączam umowę)…" value={appealText} onChange={(e) => setAppealText(e.target.value)} />
+                {appealErr && <p className="mt-1 text-red-700">{appealErr}</p>}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    className="btn-primary !py-1.5 text-sm"
+                    onClick={async () => {
+                      const r = await fetch("/api/applications/appeal", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ caseId, decisionId: latest.id, text: appealText }) });
+                      const j = await r.json().catch(() => ({}));
+                      if (!r.ok) return setAppealErr(j.error ?? "Błąd");
+                      setAppealOpen(false);
+                      setAppealText("");
+                      setAppealErr("");
+                      load();
+                    }}
+                  >
+                    Wyślij odwołanie
+                  </button>
+                  <button className="btn-ghost !py-1.5 text-sm" onClick={() => setAppealOpen(false)}>Anuluj</button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {latest?.type === "request" && !!latest.missingDocs?.length && (
         <div className="mb-4 rounded-xl border border-amber-200 p-4">

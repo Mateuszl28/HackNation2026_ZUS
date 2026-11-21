@@ -94,3 +94,19 @@ test("Eksport CSV wymaga sesji i zwraca CSV", async () => {
   assert.equal(r.status, 200);
   assert.match(r.headers.get("content-type") ?? "", /text\/csv/);
 });
+
+test("Odwołanie: odmowa → odwołanie obywatela → uwzględnienie przez ZUS (samokontrola)", async () => {
+  const caseId = "natalia-dzielo";
+  const dec = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: true, json: { type: "refuse", justification: "Brak tytułu do ubezpieczenia chorobowego.", legalBasis: ["art. 29"] } })).json();
+  assert.equal((await api("/api/applications/appeal", { method: "POST", json: { caseId, decisionId: dec.id, text: "za krótko" } })).status, 400);
+  const ap = await (await api("/api/applications/appeal", { method: "POST", json: { caseId, decisionId: dec.id, text: "W dniu porodu miałam umowę zlecenia z dobrowolnym chorobowym – załączam umowę." } })).json();
+  assert.equal(ap.status, "pending");
+  assert.equal((await api("/api/applications/appeal", { method: "POST", json: { caseId, decisionId: dec.id, text: "Drugie odwołanie od tej samej decyzji – powinno być odrzucone." } })).status, 409);
+  const row = (await (await api("/api/admin/cases", { auth: true })).json()).find((x) => x.id === caseId);
+  assert.equal(row.pendingAppeal, true);
+  assert.equal((await api(`/api/admin/cases/${caseId}/appeal`, { method: "POST", json: { appealId: ap.id, action: "accept", resolution: "Uwzględniono – samokontrola." } })).status, 401);
+  const res = await (await api(`/api/admin/cases/${caseId}/appeal`, { method: "POST", auth: true, json: { appealId: ap.id, action: "accept", resolution: "Uwzględniono – samokontrola." } })).json();
+  assert.equal(res.status, "accepted");
+  const mine = await (await api(`/api/applications?caseId=${caseId}`)).json();
+  assert.equal(mine.appeals[0].status, "accepted");
+});

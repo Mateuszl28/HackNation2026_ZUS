@@ -46,11 +46,24 @@ export interface InternalNote {
   text: string;
 }
 
+export interface Appeal {
+  id: string;
+  caseId: string;
+  decisionId: string;
+  text: string;
+  at: string;
+  status: "pending" | "accepted" | "forwarded";
+  resolvedBy?: string;
+  resolvedAt?: string;
+  resolution?: string;
+}
+
 interface Store {
   applications: StoredApplication[];
   decisions: Decision[];
   documents?: StoredDocument[];
   notes?: InternalNote[]; // wyłącznie dla urzędników – nie trafiają do API obywatela
+  appeals?: Appeal[];
 }
 
 let mem: Store | null = null;
@@ -102,7 +115,24 @@ export async function forCase(caseId: string) {
     applications: s.applications.filter((a) => a.caseId === caseId),
     decisions: s.decisions.filter((d) => d.caseId === caseId),
     documents: (s.documents ?? []).filter((d) => d.caseId === caseId),
+    appeals: (s.appeals ?? []).filter((a) => a.caseId === caseId),
   };
+}
+
+export async function addAppeal(a: Appeal) {
+  const s = await load();
+  s.appeals = [a, ...(s.appeals ?? [])].slice(0, 500);
+  await persist();
+  return a;
+}
+
+export async function resolveAppeal(id: string, patch: Pick<Appeal, "status" | "resolvedBy" | "resolution">) {
+  const s = await load();
+  const a = (s.appeals ?? []).find((x) => x.id === id);
+  if (!a || a.status !== "pending") return null;
+  Object.assign(a, patch, { resolvedAt: new Date().toISOString() });
+  await persist();
+  return a;
 }
 
 export async function addNote(n: InternalNote) {
@@ -120,7 +150,7 @@ export async function notesFor(caseId: string) {
 
 /** Wyczyszczenie danych spraw (tryb demo). */
 export async function resetCases() {
-  mem = { applications: [], decisions: [], documents: [], notes: [] };
+  mem = { applications: [], decisions: [], documents: [], notes: [], appeals: [] };
   await persist();
 }
 

@@ -2,7 +2,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Check, StickyNote, FileText, Gavel, Info, OctagonAlert, Printer, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, Scale, StickyNote, FileText, Gavel, Info, OctagonAlert, Printer, ShieldCheck, Sparkles, Wallet, X } from "lucide-react";
 import { DECISION_LABELS, pln, type CalcResult, type DecisionType, type DemoCase, type Recommendation } from "@zus/engine";
 import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
 
@@ -13,6 +13,7 @@ interface Detail {
   applications: { id: string; title: string; to: string; sentAt: number }[];
   decisions: DecisionDoc[];
   notes: { id: string; by: string; at: string; text: string }[];
+  appeals: { id: string; decisionId: string; text: string; at: string; status: "pending" | "accepted" | "forwarded"; resolvedBy?: string; resolvedAt?: string; resolution?: string }[];
   checks: { level: "ok" | "warning" | "danger"; text: string; doc?: string }[];
   sla: { days: number; left: number; deadline: string; level: "ok" | "warning" | "danger" } | null;
   documents: { id: string; name: string; fileName?: string; formType?: string; fields?: { label: string; value: string }[]; inResponseTo?: string; at: number }[];
@@ -43,6 +44,7 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
   const [busy, setBusy] = useState(false);
   const [issued, setIssued] = useState<DecisionDoc | null>(null);
   const [note, setNote] = useState("");
+  const [appealRes, setAppealRes] = useState("");
 
   const load = () =>
     fetch(`/api/admin/cases/${id}`).then(async (r) => {
@@ -207,6 +209,46 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
 
         {/* ---------- decyzja ---------- */}
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
+          {d.appeals.map((a) => (
+            <section key={a.id} className={`card border-2 ${a.status === "pending" ? "border-red-300" : "border-slate-200"}`}>
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-700"><Scale size={14} /> Odwołanie od decyzji {a.decisionId}</p>
+              <p className="text-xs text-muted">{a.id} · wpłynęło {new Date(a.at).toLocaleString("pl-PL")}</p>
+              <p className="mt-2 whitespace-pre-line rounded-lg bg-slate-50 p-2 text-sm">{a.text}</p>
+              {a.status === "pending" ? (
+                <>
+                  <p className="mt-3 text-xs text-muted">Art. 477⁹ KPC: ZUS może uwzględnić odwołanie i zmienić decyzję (samokontrola) albo w ciągu 30 dni przekazać sprawę do sądu ze stanowiskiem.</p>
+                  <textarea className="input mt-2 min-h-20 text-sm" placeholder="Uzasadnienie / stanowisko ZUS…" value={appealRes} onChange={(e) => setAppealRes(e.target.value)} />
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {(["accept", "forward"] as const).map((act) => (
+                      <button
+                        key={act}
+                        className={act === "accept" ? "btn-primary !py-2 text-sm" : "btn-ghost !py-2 text-sm"}
+                        onClick={async () => {
+                          const r = await fetch(`/api/admin/cases/${id}/appeal`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ appealId: a.id, action: act, resolution: appealRes }) });
+                          const j = await r.json().catch(() => ({}));
+                          if (!r.ok) return setErr(j.error ?? "Błąd");
+                          setAppealRes("");
+                          if (act === "accept") {
+                            choose("grant");
+                            setJust(`Na skutek odwołania ${a.id} – samokontrola (art. 477⁹ § 1 KPC).\n` + draftJustification(d, "grant"));
+                          }
+                          load();
+                        }}
+                      >
+                        {act === "accept" ? "Uwzględnij – zmień decyzję" : "Przekaż do sądu"}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className={`mt-2 rounded-lg p-2 text-sm ${a.status === "accepted" ? "bg-brand-light text-brand" : "bg-slate-100"}`}>
+                  {a.status === "accepted" ? "Uwzględniono – wydaj nową decyzję poniżej." : "Przekazano do sądu okręgowego (sąd pracy i ubezpieczeń społecznych)."} {a.resolvedBy} · {a.resolvedAt && new Date(a.resolvedAt).toLocaleDateString("pl-PL")}
+                  <span className="mt-1 block text-xs text-muted">{a.resolution}</span>
+                </p>
+              )}
+            </section>
+          ))}
+
           <section className="card border-2 border-[#123a5c]/20">
             <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted"><Sparkles size={14} /> Rekomendacja systemu</p>
             <p className="text-lg font-bold">{DECISION_LABELS[rec.type]}</p>

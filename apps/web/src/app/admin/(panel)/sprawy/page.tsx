@@ -20,6 +20,7 @@ interface Row {
   decision: { type: DecisionType; at: string; by: string } | null;
   documents: number;
   docsAfterDecision: boolean;
+  pendingAppeal: boolean;
   sla: { days: number; left: number; deadline: string; level: "ok" | "warning" | "danger" } | null;
 }
 
@@ -28,6 +29,7 @@ const REC_STYLE: Record<DecisionType, string> = { grant: "bg-brand-light text-br
 const REC_SHORT: Record<DecisionType, string> = { grant: "przyznać", refuse: "odmówić", request: "wezwać" };
 
 function statusOf(r: Row) {
+  if (r.pendingAppeal) return { key: "todo", label: "Odwołanie – do rozpatrzenia", cls: "bg-red-100 text-red-800" };
   if (r.docsAfterDecision) return { key: "todo", label: "Uzupełniono dokumenty – do decyzji", cls: "bg-amber-100 text-amber-800" };
   if (r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt)) return { key: "done", label: DECISION_LABELS[r.decision.type], cls: "bg-slate-100 text-slate-700" };
   if (r.applications) return { key: "todo", label: "Nowy wniosek – do decyzji", cls: "bg-accent/10 text-accent" };
@@ -52,7 +54,7 @@ export default function CasesPage() {
     return rows
       .filter((r) => (tab === "all" ? true : statusOf(r).key === tab))
       .filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase()))
-      .sort((a, b) => (a.sla?.left ?? 999) - (b.sla?.left ?? 999) || (b.lastApplicationAt ?? 0) - (a.lastApplicationAt ?? 0));
+      .sort((a, b) => Number(b.pendingAppeal) - Number(a.pendingAppeal) || (a.sla?.left ?? 999) - (b.sla?.left ?? 999) || (b.lastApplicationAt ?? 0) - (a.lastApplicationAt ?? 0));
   }, [rows, tab, q]);
   const count = (k: "todo" | "done") => rows?.filter((r) => statusOf(r).key === k).length ?? 0;
 
