@@ -114,7 +114,7 @@ export function computeBase(p: ParentInput, params: Params = DEFAULT_PARAMS): nu
   let base = p.baseAlreadyNet ? p.monthlyBase : p.monthlyBase * (1 - params.socialContributionEmployeeRate);
   if (p.title === "business" || p.title === "mandate") {
     const cap = params.voluntaryBaseCapMonthly * (1 - params.socialContributionEmployeeRate);
-    if (p.title === "business") base = Math.min(base, cap);
+    base = Math.min(base, cap); // limit dobrowolnego ubezpieczenia chorobowego (zlecenie, działalność)
   }
   return round2(base);
 }
@@ -142,15 +142,19 @@ export function parentalWeeks(children: number, zaZyciem: boolean, params: Param
 }
 
 export function supplementaryWeeks(prem: Prematurity, hospitalDays: number, params: Params = DEFAULT_PARAMS) {
+  // KP art. 180²: tydzień urlopu za każdy (rozpoczęty) tydzień pobytu dziecka w szpitalu, w oknie:
+  // do końca 15. tyg. po porodzie (< 28 tc. lub ≤ 1000 g), do końca 8. tyg. (28–36 tc.),
+  // od 5. dnia do końca 8. tyg. (≥ 37 tc., min. 2 kolejne dni, pierwszy między 5. a 28. dniem).
   const s = params.supplementary;
-  const weeksFromDays = Math.ceil(Math.max(hospitalDays, 0) / 7);
+  const days = Math.max(hospitalDays, 0);
+  const weeks = (window: number, cap: number) => Math.min(cap, Math.ceil(Math.min(days, window) / 7));
   switch (prem) {
     case "extreme":
-      return Math.min(s.extremePrematureMaxWeeks, weeksFromDays);
+      return weeks(15 * 7, s.extremePrematureMaxWeeks);
     case "premature":
-      return Math.min(s.prematureMaxWeeks, weeksFromDays);
+      return weeks(8 * 7, s.prematureMaxWeeks);
     case "termHospital":
-      return hospitalDays >= s.termMinHospitalDays ? Math.min(s.termHospitalMaxWeeks, weeksFromDays) : 0;
+      return days >= s.termMinHospitalDays ? weeks(8 * 7 - 4, s.termHospitalMaxWeeks) : 0;
     default:
       return 0;
   }
@@ -217,6 +221,8 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
       matWeeks = 0;
       parWeeks = 0;
     }
+    if (matWeeks > 0)
+      notices.push({ level: "info", title: "Urlop na warunkach urlopu macierzyńskiego", text: `Przysługuje do ukończenia przez dziecko ${max} lat, nie krócej jednak niż ${params.adoptionMinWeeks ?? 9} tygodni.` });
     if (input.scenario === "foster") {
       notices.push({ level: "info", title: "Rodzina zastępcza niezawodowa", text: "Przysługuje urlop na warunkach urlopu macierzyńskiego i rodzicielski. Urlop ojcowski przysługuje tylko przy przysposobieniu (adopcji)." });
     }
@@ -229,7 +235,7 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
     notices.push({
       level: "info",
       title: "Urodzenie martwego dziecka",
-      text: `Przysługuje zasiłek macierzyński za ${params.stillbirthWeeks} tygodni po porodzie (nie krócej niż ${params.minDaysAfterChildDeath} dni od dnia zgonu). Urlop rodzicielski nie przysługuje. Do wniosku dołącz zaświadczenie o martwym urodzeniu / skrócony akt urodzenia z adnotacją.`,
+      text: `Przysługuje zasiłek macierzyński za ${params.stillbirthWeeks} tygodni po porodzie (nie krócej niż ${params.minDaysAfterChildDeath} dni od dnia zgonu). Urlop rodzicielski nie przysługuje. Do wniosku dołącz zaświadczenie o martwym urodzeniu / skrócony akt urodzenia z adnotacją. Osobie, która pokryła koszty pogrzebu, przysługuje też zasiłek pogrzebowy ${params.funeralGrant ?? 7000} zł (wniosek do ZUS).`,
     });
   }
 
@@ -309,8 +315,8 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
     const unused = parWeeks - mPar - fPar;
     if (unused > 0 && (mother.eligible || father.eligible))
       notices.push({ level: "info", title: "Niewykorzystany urlop rodzicielski", text: `Pozostaje ${unused} tyg. urlopu rodzicielskiego. Można go wykorzystać w maks. ${params.parentalMaxParts} częściach do ${parentalDeadline}.` });
-    if (oneApp && mPar < mAvail)
-      notices.push({ level: "warning", title: "Ryzyko zwrotu przy 81,5%", text: "Wybrano jednorazowy wniosek (81,5%), ale matka nie wykorzysta całego urlopu rodzicielskiego. ZUS/pracodawca wyrówna zasiłek do 70% za okres rodzicielski – nadwyżka zostanie potrącona." });
+    if (oneApp)
+      notices.push({ level: "info", title: "81,5% – warunek", text: "Jeśli w pierwszym roku życia dziecka nie wykorzystasz ani jednego dnia urlopu rodzicielskiego, zasiłek za rodzicielski wyniesie 70%, a za urlop macierzyński przysługuje jednorazowe wyrównanie do 100% (na wniosek) – art. 31 ust. 3g i 4 ustawy zasiłkowej. 9 tygodni drugiego rodzica zawsze 70%." });
   }
 
   // --- ojcowski ---
@@ -321,6 +327,9 @@ export function calculate(input: CalcInput, params: Params = DEFAULT_PARAMS): Ca
       push("father", "paternity", "Urlop ojcowski", start, params.paternityDays, params.rates.maternity, `Do wykorzystania jednorazowo lub w 2 częściach (min. 7 dni) do ${isBirth ? "ukończenia przez dziecko 12 mies." : "12 mies. od uprawomocnienia przysposobienia (max 14 lat dziecka)"}.`);
     } else notices.push({ level: "warning", title: "Brak prawa do zasiłku za urlop ojcowski", text: "Ojciec nie podlega ubezpieczeniu chorobowemu." });
   }
+
+  if (!mother.eligible && !father.eligible)
+    notices.push({ level: "info", title: "Świadczenie rodzicielskie", text: `Gdy żadne z rodziców nie ma prawa do zasiłku macierzyńskiego (np. bezrobotni, studenci, umowa o dzieło), przysługuje świadczenie rodzicielskie (${params.minBenefitMonthly} zł/mies.) – wniosek do gminy/MOPS (gov.pl).` });
 
   // --- ryzyka ---
   for (const [who, p] of [["mother", input.mother], ["father", input.father]] as const) {

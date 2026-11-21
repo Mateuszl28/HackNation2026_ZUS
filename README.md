@@ -45,9 +45,13 @@ npm test             # testy silnika
 cd apps/mobile && npm install && npx expo start   # mobile (EXPO_PUBLIC_API_URL=http://<ip>:3000)
 ```
 
+## Źródła prawne i weryfikacja
+
+Parametry zweryfikowano z materiałami ZUS dla uczestników HackNation 2026: załącznik „maksymalny czas trwania zasiłków, wysokość, podstawa wymiaru”, wyciąg z ustawy zasiłkowej (m.in. art. 29a, 31 ust. 1–4a, 36–38, 49), wyciąg z Kodeksu pracy (art. 177, 180–183) oraz Poradnik dla rodziców ZUS 2026. Wszystkie wartości są edytowalne w panelu `/admin` (z historią zmian).
+
 ## Sztuczna inteligencja
 
-Obliczenia i ustalanie uprawnień są deterministyczne (reguły z ustawy zasiłkowej i Kodeksu pracy) – nie korzystają z AI. Odczyt dokumentów PDF działa heurystycznie (ekstrakcja tekstu + reguły). AI wykorzystano wyłącznie w procesie tworzenia kodu.
+Obliczenia i ustalanie uprawnień są deterministyczne (reguły z ustawy zasiłkowej i Kodeksu pracy) – nie korzystają z AI. Odczyt dokumentów PDF działa heurystycznie (ekstrakcja tekstu + reguły). AI wykorzystano wyłącznie w procesie tworzenia niektórych elementów kodu.
 
 ## Dane
 

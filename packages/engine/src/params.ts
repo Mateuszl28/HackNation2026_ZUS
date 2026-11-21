@@ -29,15 +29,17 @@ export interface Params {
     // uzupełniający urlop macierzyński
     extremePrematureMaxWeeks: number; // < 28 tc. lub masa ≤ 1000 g
     prematureMaxWeeks: number; // 28–36 tc. i masa > 1000 g
-    termHospitalMaxWeeks: number; // ≥ 37 tc. – hospitalizacja
-    termMinHospitalDays: number;
+    termHospitalMaxWeeks: number; // ≥ 37 tc. – pobyt w szpitalu od 5. dnia do końca 8. tyg. po porodzie
+    termMinHospitalDays: number; // min. kolejnych dni w szpitalu (pierwszy między 5. a 28. dniem)
     verify: boolean;
   };
   adoption: { maxAgeAdoption: number; maxAgeFoster: number; maxAgeFosterDeferred: number };
   waitingPeriodDays: { mandatory: number; voluntary: number };
   sicknessPeriodDays: number;
   employerPaidDays: { under50: number; over50: number };
-  minBenefitMonthly: number; // zasiłek macierzyński nie niższy niż świadczenie rodzicielskie
+  minBenefitMonthly: number; // zasiłek macierzyński nie niższy niż świadczenie rodzicielskie (art. 31 ust. 3a)
+  funeralGrant?: number; // zasiłek pogrzebowy
+  adoptionMinWeeks?: number; // urlop na warunkach urlopu macierzyńskiego – nie krócej niż
   voluntaryBaseCapMonthly: number; // 250% prognozowanego przeciętnego wynagrodzenia
   minimumWage: number;
 }
@@ -63,15 +65,17 @@ export const DEFAULT_PARAMS: Params = {
   supplementary: {
     extremePrematureMaxWeeks: 15,
     prematureMaxWeeks: 8,
-    termHospitalMaxWeeks: 3,
-    termMinHospitalDays: 5,
-    verify: true,
+    termHospitalMaxWeeks: 8,
+    termMinHospitalDays: 2,
+    verify: false,
   },
   adoption: { maxAgeAdoption: 14, maxAgeFoster: 7, maxAgeFosterDeferred: 10 },
   waitingPeriodDays: { mandatory: 30, voluntary: 90 },
   sicknessPeriodDays: 270,
   employerPaidDays: { under50: 33, over50: 14 },
   minBenefitMonthly: 1000,
+  funeralGrant: 7000,
+  adoptionMinWeeks: 9,
   voluntaryBaseCapMonthly: 23550,
   minimumWage: 4806,
 };

@@ -31,6 +31,10 @@ const FIELDS: [string, string, number?][] = [
   ["waitingPeriodDays.voluntary", "Okres wyczekiwania – dobrowolne (dni)"],
   ["sicknessPeriodDays", "Okres zasiłkowy (dni)"],
   ["minBenefitMonthly", "Minimalny zasiłek macierzyński (zł/mies.)"],
+  ["supplementary.termMinHospitalDays", "Uzupełniający ≥ 37 tc.: min. kolejnych dni w szpitalu"],
+  ["adoptionMinWeeks", "Urlop na warunkach macierzyńskiego – minimum (tyg.)"],
+  ["funeralGrant", "Zasiłek pogrzebowy (zł)"],
+  ["rehabMaxDays", "Świadczenie rehabilitacyjne – maks. dni"],
   ["voluntaryBaseCapMonthly", "Limit podstawy – dobrowolne (zł)"],
 ];
 

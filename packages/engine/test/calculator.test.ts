@@ -17,7 +17,10 @@ test("wymiary urlopów", () => {
   assert.equal(parentalWeeks(1, true), 65);
   assert.equal(supplementaryWeeks("premature", 40), 6);
   assert.equal(supplementaryWeeks("extreme", 200), 15);
-  assert.equal(supplementaryWeeks("termHospital", 3), 0);
+  assert.equal(supplementaryWeeks("termHospital", 1), 0);
+  assert.equal(supplementaryWeeks("termHospital", 10), 2);
+  assert.equal(supplementaryWeeks("termHospital", 80), 8);
+  assert.equal(supplementaryWeeks("premature", 200), 8);
 });
 
 test("standard: 20 tyg. 100% + 32 tyg. 70% + 9 tyg. ojca", () => {

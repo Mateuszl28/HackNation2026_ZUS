@@ -178,7 +178,12 @@ export default function CalculatorPage() {
                     <option value="termHospital">Od 37. tc., wymaga hospitalizacji (do {params.supplementary.termHospitalMaxWeeks} tyg.)</option>
                   </select>
                 </label>
-                {input.prematurity !== "none" && <Num label="Dni pobytu dziecka w szpitalu" value={input.hospitalDays ?? 0} suffix="dni" onChange={(n) => set({ hospitalDays: n })} />}
+                {input.prematurity !== "none" && (
+                  <>
+                    <Num label={input.prematurity === "termHospital" ? "Dni w szpitalu (od 5. dnia po porodzie)" : "Dni pobytu dziecka w szpitalu"} value={input.hospitalDays ?? 0} suffix="dni" onChange={(n) => set({ hospitalDays: n })} />
+                    <p className="-mt-1 text-xs text-muted">1 tydzień urlopu za każdy rozpoczęty tydzień w szpitalu do końca {input.prematurity === "extreme" ? 15 : 8}. tyg. po porodzie{input.prematurity === "termHospital" ? ` (min. ${params.supplementary.termMinHospitalDays} kolejne dni, pierwszy między 5. a 28. dniem)` : ""}. Przy wieloraczkach: najniższa masa i najdłuższa hospitalizacja.</p>
+                  </>
+                )}
                 <Check label="Urodzenie martwego dziecka" checked={!!input.stillbirth} onChange={(b) => set({ stillbirth: b })} />
               </>
             )}

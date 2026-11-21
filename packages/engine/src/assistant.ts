@@ -29,7 +29,7 @@ const INTENTS: Intent[] = [
     id: "815",
     keys: ["81", "jeden wniosek", "jednym wniosk", "caly okres"],
     answer: (p) =>
-      `Jeśli najpóźniej ${p.oneApplicationDeadlineDays} dni po porodzie złożysz wniosek o zasiłek za cały okres (macierzyński + rodzicielski), dostajesz ${pct(p.rates.oneApplication)} przez cały czas zamiast ${pct(p.rates.maternity)} + ${pct(p.rates.parental)}. Uwaga: jeśli potem nie wykorzystasz całego rodzicielskiego, zasiłek zostanie wyrównany do ${pct(p.rates.parental)}, a nadpłata potrącona. Porównaj oba warianty w kalkulatorze.`,
+      `Jeśli najpóźniej ${p.oneApplicationDeadlineDays} dni po porodzie złożysz wniosek o zasiłek za cały okres (macierzyński + rodzicielski), dostajesz ${pct(p.rates.oneApplication)} przez cały czas zamiast ${pct(p.rates.maternity)} + ${pct(p.rates.parental)}. Uwaga: 9 tygodni drugiego rodzica zawsze wynosi ${pct(p.rates.parental)}. Jeśli w pierwszym roku życia dziecka nie wykorzystasz ani jednego dnia rodzicielskiego, rodzicielski spadnie do ${pct(p.rates.parental)}, a za macierzyński dostaniesz wyrównanie do 100% (na wniosek). Porównaj warianty w kalkulatorze.`,
   },
   {
     id: "ojciec",
@@ -58,12 +58,12 @@ const INTENTS: Intent[] = [
   {
     id: "wczesniak",
     keys: ["wczesniak", "szpital", "hospitaliz", "uzupelniaj", "przedwczes"],
-    answer: (p) => `Przy wcześniaku lub hospitalizacji noworodka przysługuje uzupełniający urlop macierzyński (100%): do ${p.supplementary.extremePrematureMaxWeeks} tyg. (poród przed 28. tc. lub masa ≤ 1000 g), do ${p.supplementary.prematureMaxWeeks} tyg. (28–36 tc.), do ${p.supplementary.termHospitalMaxWeeks} tyg. (od 37. tc.). Wymiar zależy od dni pobytu w szpitalu – potrzebne zaświadczenie ze szpitala. Wsparcie: Fundacja Wcześniak (zakładka Wsparcie).`,
+    answer: (p) => `Przy wcześniaku lub hospitalizacji noworodka przysługuje uzupełniający urlop macierzyński (100%): do ${p.supplementary.extremePrematureMaxWeeks} tyg. (poród przed 28. tc. lub masa ≤ 1000 g), do ${p.supplementary.prematureMaxWeeks} tyg. (28–36 tc.), do ${p.supplementary.termHospitalMaxWeeks} tyg. (od 37. tc., gdy dziecko jest w szpitalu min. ${p.supplementary.termMinHospitalDays} kolejne dni między 5. a 28. dniem). 1 tydzień urlopu za każdy rozpoczęty tydzień pobytu w szpitalu – potrzebne zaświadczenie ze szpitala. Wsparcie: Fundacja Wcześniak (zakładka Wsparcie).`,
   },
   {
     id: "strata",
     keys: ["martw", "poronien", "strata", "zmarl", "zgon", "smierc"],
-    answer: (p) => `Bardzo nam przykro. Po urodzeniu martwego dziecka lub jego śmierci przed 8. tygodniem życia przysługuje zasiłek macierzyński za ${p.stillbirthWeeks} tygodni po porodzie (nie krócej niż ${p.minDaysAfterChildDeath} dni od zgonu), 100% podstawy. Potrzebny jest odpis aktu urodzenia z adnotacją lub karta martwego urodzenia. W zakładce Wsparcie znajdziesz organizacje pomagające po stracie i telefon zaufania 116 123.`,
+    answer: (p) => `Bardzo nam przykro. Po urodzeniu martwego dziecka lub jego śmierci przed 8. tygodniem życia przysługuje zasiłek macierzyński za ${p.stillbirthWeeks} tygodni po porodzie (nie krócej niż ${p.minDaysAfterChildDeath} dni od zgonu), 100% podstawy. Potrzebny jest odpis aktu urodzenia z adnotacją lub karta martwego urodzenia. W zakładce Wsparcie znajdziesz organizacje pomagające po stracie i telefon zaufania 116 123. Osobie, która pokryła koszty pogrzebu, przysługuje zasiłek pogrzebowy ${p.funeralGrant ?? 7000} zł.`,
   },
   {
     id: "adopcja",
