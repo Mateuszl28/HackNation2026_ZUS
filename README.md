@@ -84,6 +84,7 @@ sequenceDiagram
 | Gdzie złożyć dokumenty (pracodawca > 20 osób vs ZUS), terminy | wynik kalkulatora |
 | Zagrożenia i ryzyka (umowa dla pozoru, zawyżona podstawa, ustanie ubezpieczenia, zadłużenie, korekta 81,5%) | kalkulator, pulpit, przewodnik |
 | Symulator „Co jeśli…?”: podwyżka, koniec umowy (art. 177 § 3 KP), nowa umowa/firma, rezygnacja z dobrowolnego chorobowego – skutek dla zasiłku i ryzyka | `/co-jesli` |
+| Przewodnik w trzech językach: polski, ukraiński, angielski (przełącznik, zapamiętywany wybór) | `/przewodnik` |
 | Organizacje wsparcia, oficjalne linki (ZUS, MRPiPS, PIP, RSC) | `/wsparcie` |
 | Logowanie mObywatel (symulacja) | `/logowanie` |
 | Pobranie danych z ZUS: ubezpieczenie, zadłużenie, e-ZLA (symulacja) | `/pulpit`, `GET /api/zus/:id` |
