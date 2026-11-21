@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BarChart3, RefreshCw } from "lucide-react";
 
-interface Stats {
+export interface Stats {
   since: string;
   plans: number;
   questions: number;
@@ -12,7 +12,7 @@ interface Stats {
   titles: Record<string, number>;
 }
 
-const INTENT_LABELS: Record<string, string> = {
+export const INTENT_LABELS: Record<string, string> = {
   ile: "Ile wyniesie zasiłek", "815": "Wariant 81,5%", ojciec: "Uprawnienia ojca", dzialalnosc: "Działalność / składki", zlecenie: "Umowa zlecenia",
   l4: "L4 w ciąży", wczesniak: "Wcześniak / szpital", strata: "Strata dziecka", adopcja: "Adopcja / rodzina zastępcza", praca: "Łączenie z pracą",
   gdzie: "Gdzie złożyć wniosek", zwolnienie: "Ochrona przed zwolnieniem", utrata: "Utrata pracy w ciąży", rehab: "Świadczenie rehabilitacyjne", fallback: "Nierozpoznane pytania",
@@ -21,7 +21,7 @@ const SCENARIO_LABELS: Record<string, string> = { birth: "Poród", adoption: "Ad
 const TITLE_LABELS: Record<string, string> = { employment: "Umowa o pracę", mandate: "Umowa zlecenia", business: "Działalność", none: "Brak ubezpieczenia" };
 
 /** Ranking jednej serii: poziome paski w jednym odcieniu, wartości jako tekst, tooltip na wierszu. */
-function Ranking({ title, data, labels, total }: { title: string; data: Record<string, number>; labels?: Record<string, string>; total: number }) {
+export function Ranking({ title, data, labels, total }: { title: string; data: Record<string, number>; labels?: Record<string, string>; total: number }) {
   const rows = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const max = Math.max(1, ...rows.map((r) => r[1]));
   return (

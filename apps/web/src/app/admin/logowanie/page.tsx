@@ -21,9 +21,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="grid min-h-dvh place-items-center bg-gradient-to-br from-[#123a5c] to-[#0c2740] px-4 py-10">
+      <div className="w-full max-w-md">
       <form onSubmit={submit} className="card space-y-4 !p-8">
-        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent/10 text-accent"><Landmark size={28} /></span>
+        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#123a5c]/10 text-[#123a5c]"><Landmark size={28} /></span>
         <div>
           <h1>Panel urzędnika</h1>
           <p className="mt-1 text-sm text-muted">Zarządzanie parametrami prawnymi, organizacjami wsparcia i statystykami. Dostęp wyłącznie dla upoważnionych pracowników ZUS.</p>
@@ -34,6 +35,8 @@ export default function AdminLogin() {
         <button className="btn-primary w-full !py-3" disabled={busy}><LogIn size={18} /> {busy ? "Logowanie…" : "Zaloguj"}</button>
         <p className="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs text-muted"><KeyRound size={14} className="mt-0.5 shrink-0" /> Środowisko demonstracyjne HackNation – dane dostępowe dla jury podano w README repozytorium. W produkcji: logowanie domenowe ZUS (SSO) z rolami.</p>
       </form>
+      <p className="mt-4 text-center text-xs text-white/60"><a href="/" className="underline">← Wróć do serwisu dla obywateli</a></p>
+      </div>
     </div>
   );
 }

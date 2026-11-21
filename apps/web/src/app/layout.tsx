@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import Nav from "@/components/Nav";
-import AuthGate from "@/components/AuthGate";
+import SiteShell from "@/components/SiteShell";
 import RegisterSW from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
@@ -17,12 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl">
       <body className="min-h-dvh antialiased">
         <RegisterSW />
-        <Nav />
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:py-10"><AuthGate>{children}</AuthGate></main>
-        <footer className="border-t border-slate-200 py-6 pb-24 lg:pb-6 text-center text-xs text-muted px-4">
-          Projekt HackNation 2026 · Narzędzie informacyjne – wiążące decyzje wydaje ZUS lub płatnik składek. Logowanie mObywatel, dane ZUS i e-ZLA są symulowane.
-          <a href="/admin" className="ml-2 underline decoration-dotted hover:text-ink">Panel urzędnika</a>
-        </footer>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );
