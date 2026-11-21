@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Baby, Briefcase, Building2, CheckCircle2, FileSignature, HeartHandshake, Home, User, Users, XCircle } from "lucide-react";
 import { calculate, pln, type CalcInput, type InsuranceTitle } from "@zus/engine";
-import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
+import { DEFAULT_INPUT, reportPlan, useParams, useSession } from "@/lib/session";
 
 type Answers = {
   scenario: CalcInput["scenario"];
@@ -153,7 +153,7 @@ export default function Wizard() {
         {step < 4 && (
           <div className="flex justify-between pt-2">
             <button className="btn-ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}><ArrowLeft size={18} /> Wstecz</button>
-            <button className="btn-primary" onClick={() => setStep((s) => s + 1)}>{step === 3 ? "Pokaż wynik" : "Dalej"} <ArrowRight size={18} /></button>
+            <button className="btn-primary" onClick={() => { if (step === 3) reportPlan(input, params); setStep((s) => s + 1); }}>{step === 3 ? "Pokaż wynik" : "Dalej"} <ArrowRight size={18} /></button>
           </div>
         )}
         {step === 4 && <button className="text-sm text-muted hover:text-ink" onClick={() => setStep(0)}><User size={14} className="inline" /> Zacznij od nowa</button>}

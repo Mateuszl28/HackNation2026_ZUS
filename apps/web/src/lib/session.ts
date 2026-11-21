@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { DEFAULT_PARAMS, type CalcInput, type Params } from "@zus/engine";
+import { DEFAULT_PARAMS, calculate, type CalcInput, type Params } from "@zus/engine";
 
 export interface Session {
   user?: { name: string; caseId: string };
@@ -59,3 +59,12 @@ export const DEFAULT_INPUT: CalcInput = {
   father: { title: "employment", monthlyBase: 7000 },
   plan: { prenatalWeeks: 0, motherParentalWeeks: 32, fatherParentalWeeks: 9, paternity: true, oneApplication: false },
 };
+
+/** Anonimowe zgłoszenie zapisanego planu do statystyk (kategorie, bez kwot i danych osobowych). */
+export function reportPlan(input: CalcInput, params: Params = DEFAULT_PARAMS) {
+  try {
+    const r = calculate(input, params);
+    const body = JSON.stringify({ scenario: input.scenario, titles: [input.mother.title, input.father.title], risks: r.notices.filter((n) => n.level !== "info").map((n) => n.title) });
+    fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
+  } catch {}
+}

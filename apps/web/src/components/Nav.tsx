@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Calculator, ChevronDown, ListChecks, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
+import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
 import { isProtected } from "@/components/AuthGate";
@@ -17,6 +17,7 @@ const PRIMARY = [
 const MORE = [
   { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
   { href: "/wnioski", label: "Wnioski", desc: "Urlopy, ZAM, odpis aktu urodzenia", icon: FileText },
+  { href: "/pracodawca", label: "Dla pracodawcy", desc: "Kto wypłaca zasiłek, koszty, obowiązki i terminy", icon: Briefcase },
   { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
   { href: "/admin", label: "Panel admina", desc: "Parametry prawne i stawki", icon: Settings },
 ];

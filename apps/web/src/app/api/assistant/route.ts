@@ -1,5 +1,6 @@
 import { answerQuestion, calculate, type CalcInput } from "@zus/engine";
 import { getConfig } from "@/lib/params-store";
+import { trackQuestion } from "@/lib/analytics";
 
 /**
  * POST /api/assistant – { question, input? } → { text, source }
@@ -13,6 +14,7 @@ export async function POST(req: Request) {
   const { params } = await getConfig();
   const result = input ? calculate({ ...input, plan: input.plan ?? {} }, params) : undefined;
   const rules = answerQuestion(question, params, input, result);
+  trackQuestion(rules.intent).catch(() => {});
 
   const key = process.env.AI_GATEWAY_API_KEY;
   const model = process.env.AI_MODEL;

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { calculate, decodePlan, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
-import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
+import { DEFAULT_INPUT, reportPlan, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
 
@@ -248,7 +248,7 @@ export default function CalculatorPage() {
               )}
             </section>
           )}
-          <button className="btn-ghost w-full" onClick={() => update({ input })}>Zapisz plan na pulpicie</button>
+          <button className="btn-ghost w-full" onClick={() => { update({ input }); reportPlan(input, params); }}>Zapisz plan na pulpicie</button>
         </div>
 
         {/* ---------- RESULTS ---------- */}

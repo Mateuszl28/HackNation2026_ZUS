@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Lock, RotateCcw, Save } from "lucide-react";
 import type { Params, SupportOrg } from "@zus/engine";
+import StatsPanel from "@/components/StatsPanel";
 
 interface Config { params: Params; support: SupportOrg[]; history?: { at: string; version: string; note?: string; changes: { path: string; from: unknown; to: unknown }[] }[] }
 
@@ -82,6 +83,7 @@ export default function Admin() {
         <h2 className="mb-2">Organizacje wsparcia (JSON)</h2>
         <textarea className="input font-mono text-xs h-56" defaultValue={JSON.stringify(cfg.support, null, 2)} onBlur={(e) => { try { setCfg({ ...cfg, support: JSON.parse(e.target.value) }); setMsg(""); } catch { setMsg("❌ Niepoprawny JSON"); } }} />
       </section>
+      <StatsPanel token={token} />
       <section className="card">
         <h2 className="mb-3">Historia zmian (audyt)</h2>
         {!cfg.history?.length ? <p className="text-sm text-muted">Brak zmian – obowiązują parametry domyślne.</p> : (

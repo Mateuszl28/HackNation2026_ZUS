@@ -169,3 +169,14 @@ test("checklista, postęp ciąży, link do planu", () => {
   assert.equal(p.trimester, 3);
   assert.deepEqual(decodePlan(encodePlan(c.input)), c.input);
 });
+
+import { employerView } from "../src/employer.ts";
+
+test("pracodawca: próg 20 ubezpieczonych i koszt wynagrodzenia chorobowego", () => {
+  const small = employerView({ insuredCount: 8, monthlyGross: 6000, dueDate: "2027-05-01", sickDays: 60, leave: { motherParentalWeeks: 41 } });
+  assert.equal(small.paysBenefits, false);
+  assert.equal(small.employerSickDays, 33);
+  assert.equal(small.employerSickCost, 5695.14);
+  const big = employerView({ insuredCount: 21, monthlyGross: 6000, dueDate: "2027-05-01", leave: {} });
+  assert.equal(big.paysBenefits, true);
+});
