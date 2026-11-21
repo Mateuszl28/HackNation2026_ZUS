@@ -118,6 +118,12 @@ export async function notesFor(caseId: string) {
   return (s.notes ?? []).filter((n) => n.caseId === caseId);
 }
 
+/** Wyczyszczenie danych spraw (tryb demo). */
+export async function resetCases() {
+  mem = { applications: [], decisions: [], documents: [], notes: [] };
+  await persist();
+}
+
 export async function allCases() {
   return load();
 }

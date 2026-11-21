@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Bot, Briefcase, Shuffle, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, ListChecks, Lock, Map, Smartphone, Sparkles } from "lucide-react";
+import { Bot, Briefcase, Play, Shuffle, Calculator, FileText, FolderOpen, HeartHandshake, LayoutDashboard, ListChecks, Lock, Map, Smartphone, Sparkles } from "lucide-react";
 import { useSession } from "@/lib/session";
 
 const PUBLIC = [
@@ -68,6 +68,11 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <Link href="/demo" className="flex items-center gap-4 rounded-2xl border-2 border-dashed border-[#123a5c]/30 bg-white p-5 transition hover:border-[#123a5c]">
+        <span className="grid h-12 w-12 place-items-center rounded-xl bg-[#123a5c] text-white"><Play /></span>
+        <span className="flex-1"><span className="block font-semibold">Demo dla jury – 3 role w 5 minut</span><span className="text-sm text-muted">Obywatel, pracodawca i urzędnik ZUS w jednym scenariuszu. Szybkie logowanie i reset danych.</span></span>
+      </Link>
 
       <section className="card flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Smartphone className="shrink-0 text-accent" size={32} />

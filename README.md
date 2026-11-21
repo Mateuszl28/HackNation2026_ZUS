@@ -2,6 +2,10 @@
 
 HackNation 2026 · wyzwanie ZUS. Narzędzie (web RWD + aplikacja mobilna), które na podstawie indywidualnej sytuacji ustala uprawnienia do zasiłku chorobowego w ciąży i zasiłku macierzyńskiego, liczy okres i wysokość świadczeń dla obojga rodziców i prowadzi przez wnioski.
 
+## Dla jury – start w 5 minut
+
+Otwórz **`/demo`**: scenariusz krok po kroku (obywatel → urzędnik → pracodawca → decyzja), szybkie wejście w każdą z 8 spraw, logowanie urzędnika jednym kliknięciem i reset danych. Panel urzędnika: `urzednik` / `zus2026`. Tryb demo (szybkie logowanie i reset) wyłącza się w produkcji zmienną `DEMO_MODE=off`.
+
 ## Struktura
 
 ```

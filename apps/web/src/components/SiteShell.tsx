@@ -15,6 +15,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-slate-200 px-4 py-6 pb-24 text-center text-xs text-muted lg:pb-6">
         Projekt HackNation 2026 · Narzędzie informacyjne – wiążące decyzje wydaje ZUS lub płatnik składek. Logowanie mObywatel, dane ZUS i e-ZLA są symulowane.
         <a href="/admin" className="ml-2 underline decoration-dotted hover:text-ink">Panel urzędnika</a>
+        <a href="/demo" className="ml-2 underline decoration-dotted hover:text-ink">Demo dla jury</a>
       </footer>
     </>
   );
