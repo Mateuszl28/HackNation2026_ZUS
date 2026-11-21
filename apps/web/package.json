@@ -2,7 +2,12 @@
   "name": "web",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:api": "node --test scripts/api-test.mjs"
+  },
   "dependencies": {
     "@zus/engine": "*",
     "next": "latest",

@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Baby, CalendarClock, Check, Copy, Share2 } from "lucide-react";
-import { buildChecklist, calculate, encodePlan, pln, pregnancyProgress, PHASE_LABELS, type Phase } from "@zus/engine";
+import { buildChecklist, calculate, deadlines, encodePlan, pln, pregnancyProgress, PHASE_LABELS, type Phase } from "@zus/engine";
 import { useParams, useSession } from "@/lib/session";
+import PlanCalendar from "@/components/PlanCalendar";
 
 const PHASES: Phase[] = ["now", "beforeBirth", "afterBirth", "later"];
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -13,6 +14,7 @@ export default function PlanPage() {
   const { session, ready } = useSession();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);
+  const [view, setView] = useState<"list" | "calendar">("list");
   const key = `zpr-done-${session.user?.caseId ?? "anon"}`;
 
   useEffect(() => {
@@ -102,7 +104,18 @@ export default function PlanPage() {
         </div>
       </section>
 
-      {PHASES.map((ph) => {
+      <div className="flex rounded-xl bg-slate-200 p-1 text-sm w-fit" role="tablist">
+        <button role="tab" aria-selected={view === "list"} onClick={() => setView("list")} className={`rounded-lg px-3 py-1.5 ${view === "list" ? "bg-white font-semibold shadow" : ""}`}>Lista kroków</button>
+        <button role="tab" aria-selected={view === "calendar"} onClick={() => setView("calendar")} className={`rounded-lg px-3 py-1.5 ${view === "calendar" ? "bg-white font-semibold shadow" : ""}`}>Kalendarz</button>
+      </div>
+
+      {view === "calendar" && (
+        <section className="card">
+          <PlanCalendar periods={result.periods} deadlines={deadlines(input, result, params)} eventDate={input.eventDate} today={TODAY} />
+        </section>
+      )}
+
+      {view === "list" && PHASES.map((ph) => {
         const list = items.filter((i) => i.phase === ph);
         if (!list.length) return null;
         return (

@@ -1,11 +1,15 @@
 {
   "name": "zus-przewodnik-rodzica",
   "private": true,
-  "workspaces": ["packages/*", "apps/web"],
+  "workspaces": [
+    "packages/*",
+    "apps/web"
+  ],
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
     "test": "npm test -w packages/engine",
-    "mobile": "cd apps/mobile && npx expo start"
+    "mobile": "cd apps/mobile && npx expo start",
+    "test:api": "npm run test:api -w apps/web"
   }
 }

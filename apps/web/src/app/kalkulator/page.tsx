@@ -290,7 +290,7 @@ export default function CalculatorPage() {
             </section>
           ) : (
             <>
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-3 gap-3" aria-live="polite" aria-atomic="true">
                 <Stat label="Matka – łącznie" value={pln(result.mother.total)} sub={result.mother.eligible ? `podstawa ${pln(result.mother.base)}` : "brak prawa"} />
                 <Stat label="Ojciec – łącznie" value={pln(result.father.total)} sub={result.father.eligible ? `podstawa ${pln(result.father.base)}` : "brak prawa"} />
                 <Stat label="Rodzina – razem" value={pln(result.total)} sub={`${Math.round(result.periods.reduce((s, p) => s + p.days, 0) / 7)} tyg. świadczeń`} strong />

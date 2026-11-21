@@ -46,7 +46,8 @@ apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym si
 ```bash
 npm install
 npm run dev          # web: http://localhost:3000
-npm test             # testy silnika
+npm test             # testy silnika (jednostkowe)
+npm run test:api     # testy end-to-end REST API (na działającym serwerze, BASE_URL)
 cd apps/mobile && npm install && npx expo start   # mobile (EXPO_PUBLIC_API_URL=http://<ip>:3000)
 ```
 
