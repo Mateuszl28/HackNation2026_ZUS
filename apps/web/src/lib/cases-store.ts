@@ -27,9 +27,21 @@ export interface Decision {
   total?: number;
 }
 
+export interface StoredDocument {
+  id: string;
+  caseId: string;
+  name: string; // np. nazwa wymaganego dokumentu z wezwania lub nazwa pliku
+  fileName?: string;
+  formType?: string;
+  fields?: { label: string; value: string }[];
+  inResponseTo?: string; // id wezwania
+  at: number;
+}
+
 interface Store {
   applications: StoredApplication[];
   decisions: Decision[];
+  documents?: StoredDocument[];
 }
 
 let mem: Store | null = null;
@@ -68,9 +80,20 @@ export async function addDecision(d: Decision) {
   return d;
 }
 
+export async function addDocument(d: StoredDocument) {
+  const s = await load();
+  s.documents = [d, ...(s.documents ?? [])].slice(0, 1000);
+  await persist();
+  return d;
+}
+
 export async function forCase(caseId: string) {
   const s = await load();
-  return { applications: s.applications.filter((a) => a.caseId === caseId), decisions: s.decisions.filter((d) => d.caseId === caseId) };
+  return {
+    applications: s.applications.filter((a) => a.caseId === caseId),
+    decisions: s.decisions.filter((d) => d.caseId === caseId),
+    documents: (s.documents ?? []).filter((d) => d.caseId === caseId),
+  };
 }
 
 export async function allCases() {

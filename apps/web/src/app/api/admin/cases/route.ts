@@ -13,7 +13,9 @@ export async function GET(req: Request) {
       const result = calculate(c.input, params);
       const rec = recommendDecision(c.input, result, c.zusData);
       const apps = store.applications.filter((a) => a.caseId === c.id);
+      const docs = (store.documents ?? []).filter((d) => d.caseId === c.id);
       const last = store.decisions.find((d) => d.caseId === c.id);
+      const lastDocAt = docs[0]?.at ?? null;
       return {
         id: c.id,
         name: c.title.split(" – ")[0],
@@ -25,7 +27,9 @@ export async function GET(req: Request) {
         recommendation: rec.type,
         manualChecks: rec.manualChecks.length,
         applications: apps.length,
-        lastApplicationAt: apps[0]?.sentAt ?? null,
+        lastApplicationAt: Math.max(apps[0]?.sentAt ?? 0, lastDocAt ?? 0) || null,
+        documents: docs.length,
+        docsAfterDecision: !!(last && lastDocAt && lastDocAt > new Date(last.at).getTime()),
         decision: last ? { type: last.type, at: last.at, by: last.by } : null,
       };
     }),

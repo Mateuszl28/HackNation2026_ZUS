@@ -11,7 +11,7 @@ export default function Overview() {
   const [todo, setTodo] = useState<number | null>(null);
   useEffect(() => {
     fetch("/api/stats").then((r) => (r.ok ? r.json() : null)).then(setStats).catch(() => {});
-    fetch("/api/admin/cases").then((r) => (r.ok ? r.json() : [])).then((rows: { applications: number; lastApplicationAt: number | null; decision: { at: string } | null }[]) => setTodo(rows.filter((r) => !(r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt))).length)).catch(() => {});
+    fetch("/api/admin/cases").then((r) => (r.ok ? r.json() : [])).then((rows: { applications: number; lastApplicationAt: number | null; decision: { at: string } | null; docsAfterDecision: boolean }[]) => setTodo(rows.filter((r) => r.docsAfterDecision || !(r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt))).length)).catch(() => {});
   }, []);
 
   const riskCount = stats ? Object.values(stats.risks).reduce((a, b) => a + b, 0) : 0;

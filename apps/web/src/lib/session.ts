@@ -91,3 +91,17 @@ export function reportPlan(input: CalcInput, params: Params = DEFAULT_PARAMS) {
     fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
   } catch {}
 }
+
+/** Odczyt pliku (PDF) i dołączenie go do sprawy obywatela w ZUS. */
+export async function uploadToCase(file: File, caseId: string, name: string, inResponseTo?: string) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const parsed = await fetch("/api/parse", { method: "POST", body: fd }).then((r) => r.json()).catch(() => ({}));
+  const r = await fetch("/api/applications/documents", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ caseId, name, fileName: file.name, formType: parsed?.formType, fields: parsed?.fields ?? [], inResponseTo }),
+  });
+  if (!r.ok) throw new Error("Nie udało się przesłać dokumentu");
+  return r.json();
+}

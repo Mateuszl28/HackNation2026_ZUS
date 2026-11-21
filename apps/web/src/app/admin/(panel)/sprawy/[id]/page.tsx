@@ -12,6 +12,7 @@ interface Detail {
   recommendation: Recommendation;
   applications: { id: string; title: string; to: string; sentAt: number }[];
   decisions: DecisionDoc[];
+  documents: { id: string; name: string; fileName?: string; formType?: string; fields?: { label: string; value: string }[]; inResponseTo?: string; at: number }[];
 }
 
 const TITLE: Record<string, string> = { employment: "Umowa o pracę", mandate: "Umowa zlecenia", business: "Działalność gospodarcza", none: "Brak ubezpieczenia chorobowego" };
@@ -132,6 +133,33 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
               </ul>
             ) : (
               <p className="text-sm text-muted">Brak wniosków złożonych elektronicznie (sprawa z dokumentów papierowych / od płatnika).</p>
+            )}
+          </section>
+
+          <section className="card">
+            <h2 className="mb-3 flex items-center gap-2"><FileText size={18} /> Dokumenty w sprawie {d.documents.length > 0 && <span className="chip bg-slate-100">{d.documents.length}</span>}</h2>
+            {!d.documents.length ? (
+              <p className="text-sm text-muted">Obywatel nie przesłał jeszcze dokumentów elektronicznie.</p>
+            ) : (
+              <ul className="space-y-3">
+                {d.documents.map((doc) => {
+                  const fresh = d.decisions[0] && doc.at > new Date(d.decisions[0].at).getTime();
+                  return (
+                    <li key={doc.id} className={`rounded-xl border p-3 text-sm ${fresh ? "border-amber-300 bg-amber-50/60" : "border-slate-200"}`}>
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="font-semibold">{doc.name} {fresh && <span className="chip ml-1 bg-amber-200 text-amber-900">nowy</span>}</p>
+                        <span className="font-mono text-xs text-muted">{doc.id} · {new Date(doc.at).toLocaleString("pl-PL")}</span>
+                      </div>
+                      <p className="text-xs text-muted">{doc.fileName}{doc.formType ? ` · rozpoznano: ${doc.formType}` : ""}{doc.inResponseTo ? ` · odpowiedź na ${doc.inResponseTo}` : ""}</p>
+                      {!!doc.fields?.length && (
+                        <dl className="mt-2 grid gap-x-6 gap-y-0.5 sm:grid-cols-2">
+                          {doc.fields.map((f) => <div key={f.label} className="flex justify-between gap-2 border-b border-slate-100 py-0.5"><dt className="text-muted">{f.label}</dt><dd className="font-medium">{f.value}</dd></div>)}
+                        </dl>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </section>
 

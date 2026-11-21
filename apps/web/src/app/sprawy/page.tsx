@@ -9,7 +9,8 @@ type Parsed = ParsedDocument & { textPreview?: string; error?: string; fileName?
 
 export default function Cases() {
   const params = useParams();
-  const { update } = useSession();
+  const { update, session } = useSession();
+  const [attached, setAttached] = useState<Record<number, string>>({});
   const router = useRouter();
   const [docs, setDocs] = useState<Parsed[]>([]);
   const [busy, setBusy] = useState(false);
@@ -69,7 +70,19 @@ export default function Cases() {
             )}
             {d.warnings?.map((w) => <p key={w} className="text-xs text-amber-700">⚠ {w}</p>)}
             {d.confidence !== undefined && <p className="text-xs text-muted">Pewność odczytu: {Math.round(d.confidence * 100)}%</p>}
-            {!d.error && <button className="btn-primary text-sm" onClick={() => useDoc(d)}>Przelicz w kalkulatorze</button>}
+            {!d.error && (
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-primary text-sm" onClick={() => useDoc(d)}>Przelicz w kalkulatorze</button>
+                {session.user && (attached[i] ? (
+                  <span className="chip bg-brand-light !py-1.5 text-brand">✓ Dołączono do sprawy w ZUS ({attached[i]})</span>
+                ) : (
+                  <button className="btn-ghost text-sm" onClick={async () => {
+                    const r = await fetch("/api/applications/documents", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ caseId: session.user!.caseId, name: d.formType ?? d.fileName ?? "Dokument", fileName: d.fileName, formType: d.formType, fields: d.fields }) });
+                    if (r.ok) setAttached({ ...attached, [i]: (await r.json()).id });
+                  }}>Dołącz do mojej sprawy w ZUS</button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </section>

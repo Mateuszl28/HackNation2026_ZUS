@@ -1,9 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, FileClock, Gavel, Loader2, Printer } from "lucide-react";
+import { Check, FileClock, Gavel, Loader2, Printer, Upload } from "lucide-react";
 import { DECISION_LABELS } from "@zus/engine";
-import { applicationStatus, useSession } from "@/lib/session";
+import { applicationStatus, uploadToCase, useSession } from "@/lib/session";
 import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
 
 /** Status wniosków obywatela + decyzje urzędnika ZUS (z serwera). */
@@ -12,6 +12,8 @@ export default function ApplicationsTracker() {
   const [now, setNow] = useState(() => Date.now());
   const [decisions, setDecisions] = useState<DecisionDoc[]>([]);
   const [open, setOpen] = useState<DecisionDoc | null>(null);
+  const [docs, setDocs] = useState<{ name: string; inResponseTo?: string; at: number }[]>([]);
+  const [uploading, setUploading] = useState<string | null>(null);
   const apps = session.applications ?? [];
   const caseId = session.user?.caseId;
 
@@ -19,7 +21,7 @@ export default function ApplicationsTracker() {
     if (!caseId) return;
     fetch(`/api/applications?caseId=${encodeURIComponent(caseId)}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => j && setDecisions(j.decisions ?? []))
+      .then((j) => { if (j) { setDecisions(j.decisions ?? []); setDocs(j.documents ?? []); } })
       .catch(() => {});
   }, [caseId]);
 
@@ -46,6 +48,36 @@ export default function ApplicationsTracker() {
             <p className="text-sm text-muted">{latest.id} · {new Date(latest.at).toLocaleString("pl-PL")}</p>
           </div>
           <button className="btn-ghost !py-1.5 text-sm" onClick={() => setOpen(latest)}>Zobacz pismo</button>
+        </div>
+      )}
+
+      {latest?.type === "request" && !!latest.missingDocs?.length && (
+        <div className="mb-4 rounded-xl border border-amber-200 p-4">
+          <p className="mb-2 font-semibold">Uzupełnij dokumenty (termin: 7 dni od doręczenia)</p>
+          <ul className="space-y-2">
+            {latest.missingDocs.map((m) => {
+              const sent = docs.find((x) => x.name === m && x.inResponseTo === latest.id);
+              return (
+                <li key={m} className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className={`flex-1 ${sent ? "text-muted line-through" : ""}`}>{m}</span>
+                  {sent ? (
+                    <span className="chip bg-brand-light text-brand"><Check size={12} className="mr-1" /> przesłano {new Date(sent.at).toLocaleDateString("pl-PL")}</span>
+                  ) : (
+                    <label className={`btn-ghost cursor-pointer !py-1 text-xs ${uploading === m ? "opacity-60" : ""}`}>
+                      {uploading === m ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Prześlij
+                      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.txt" className="hidden" disabled={!!uploading} onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f || !caseId) return;
+                        setUploading(m);
+                        try { await uploadToCase(f, caseId, m, latest.id); load(); } finally { setUploading(null); }
+                      }} />
+                    </label>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-xs text-muted">Przesłane dokumenty trafiają do urzędnika prowadzącego sprawę – po weryfikacji otrzymasz decyzję.</p>
         </div>
       )}
 

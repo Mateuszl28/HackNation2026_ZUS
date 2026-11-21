@@ -18,6 +18,8 @@ interface Row {
   applications: number;
   lastApplicationAt: number | null;
   decision: { type: DecisionType; at: string; by: string } | null;
+  documents: number;
+  docsAfterDecision: boolean;
 }
 
 const SCEN: Record<string, string> = { birth: "Poród", adoption: "Adopcja", foster: "Rodzina zastępcza" };
@@ -25,6 +27,7 @@ const REC_STYLE: Record<DecisionType, string> = { grant: "bg-brand-light text-br
 const REC_SHORT: Record<DecisionType, string> = { grant: "przyznać", refuse: "odmówić", request: "wezwać" };
 
 function statusOf(r: Row) {
+  if (r.docsAfterDecision) return { key: "todo", label: "Uzupełniono dokumenty – do decyzji", cls: "bg-amber-100 text-amber-800" };
   if (r.decision && (!r.lastApplicationAt || new Date(r.decision.at).getTime() >= r.lastApplicationAt)) return { key: "done", label: DECISION_LABELS[r.decision.type], cls: "bg-slate-100 text-slate-700" };
   if (r.applications) return { key: "todo", label: "Nowy wniosek – do decyzji", cls: "bg-accent/10 text-accent" };
   return { key: "todo", label: "Do weryfikacji", cls: "bg-slate-100 text-slate-600" };
@@ -92,7 +95,7 @@ export default function CasesPage() {
                     <span className={`chip ${REC_STYLE[r.recommendation]}`}>{REC_SHORT[r.recommendation]}</span>
                     {r.manualChecks > 0 && <span className="ml-1 inline-flex items-center text-xs text-amber-700" title="Wymaga ręcznej weryfikacji"><AlertTriangle size={13} className="mr-0.5" />weryfikacja</span>}
                   </td>
-                  <td><span className={`chip ${st.cls}`}>{st.label}</span>{r.applications > 0 && <p className="text-xs text-muted">wniosków: {r.applications}</p>}</td>
+                  <td><span className={`chip ${st.cls}`}>{st.label}</span>{(r.applications > 0 || r.documents > 0) && <p className="text-xs text-muted">wniosków: {r.applications} · dokumentów: {r.documents}</p>}</td>
                   <td className="text-right tabular-nums">{r.total ? pln(r.total) : "–"}</td>
                   <td className="pr-4 text-right"><ChevronRight size={16} className="inline text-muted" /></td>
                 </tr>
