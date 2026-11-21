@@ -213,3 +213,28 @@ test("co jeśli: koniec umowy przed porodem vs ochrona art. 177 § 3 KP", () => 
   const kept = whatIf(c.input, { kind: "endContract", who: "mother", date: "2027-02-28", fixedTerm: true, pregnancyStart: "2026-06-10" });
   assert.equal(kept.after, kept.before);
 });
+
+import { defaultParentalParts, planParental } from "../src/parental.ts";
+
+test("planer rodzicielskiego: domyślny podział poprawny", () => {
+  const c = DEMO_CASES.find((x) => x.id === "anna-etat")!;
+  const parts = defaultParentalParts(c.input);
+  const r = planParental(c.input, parts);
+  assert.equal(r.errors.length, 0);
+  assert.equal(r.used.total, 41);
+  assert.equal(r.used.father, 9);
+});
+
+test("planer rodzicielskiego: limity – 9 tyg. ojca, pula, liczba części, jednoczesny", () => {
+  const c = DEMO_CASES.find((x) => x.id === "anna-etat")!;
+  const s = "2027-08-08";
+  const tooMuchMom = planParental(c.input, [{ who: "mother", start: s, weeks: 35 }]);
+  assert.ok(tooMuchMom.errors.some((e) => e.title.includes("maks.")));
+  const six = planParental(c.input, Array.from({ length: 6 }, (_, i) => ({ who: (i % 2 ? "father" : "mother") as "mother" | "father", start: `2028-0${i + 1}-01`, weeks: 2 })));
+  assert.ok(six.errors.some((e) => e.title.includes("Za dużo części")));
+  const together = planParental(c.input, [{ who: "mother", start: s, weeks: 20 }, { who: "father", start: s, weeks: 9 }]);
+  assert.equal(together.errors.length, 0);
+  assert.ok(together.overlapDays >= 63);
+  const pool = planParental(c.input, [{ who: "mother", start: s, weeks: 32 }, { who: "father", start: "2028-06-01", weeks: 10 }]);
+  assert.ok(pool.errors.some((e) => e.title.includes("Przekroczona pula")));
+});

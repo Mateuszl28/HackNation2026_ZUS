@@ -20,6 +20,7 @@ apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym si
 |---|---|
 | Świadczenia w ciąży (chorobowy, kod „B”, okres wyczekiwania, wynagrodzenie chorobowe) | `/kalkulator` → zakładka „Chorobowy w ciąży” |
 | Zintegrowany kalkulator: macierzyński, rodzicielski, ojcowski, uzupełniający (wcześniaki), „Za życiem”, ciąża mnoga, 81,5%, łączenie z pracą, podział między rodziców, adopcja, rodzina zastępcza, martwe urodzenie | `/kalkulator` |
+| Planer podziału urlopu rodzicielskiego: do 5 części, naprzemiennie lub jednocześnie, praca do 1/2 etatu – z walidacją puli, 9 tyg. na wyłączność i terminu (KP art. 182¹a–182¹e) | `/kalkulator` → „Podział rodzicielskiego” |
 | Indywidualna podstawa wymiaru (13,71%, minimum, limit dla dobrowolnych) | silnik `computeBase` |
 | Gdzie złożyć dokumenty (pracodawca > 20 osób vs ZUS), terminy | wynik kalkulatora |
 | Zagrożenia i ryzyka (umowa dla pozoru, zawyżona podstawa, ustanie ubezpieczenia, zadłużenie, korekta 81,5%) | kalkulator, pulpit, przewodnik |

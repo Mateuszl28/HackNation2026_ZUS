@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { calculate, decodePlan, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, reportPlan, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
+import ParentalPlanner from "@/components/ParentalPlanner";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
 
 const TITLES: [InsuranceTitle, string][] = [
@@ -111,7 +112,7 @@ export default function CalculatorPage() {
   const params = useParams();
   const { session, ready, update } = useSession();
   const [input, setInput] = useState<CalcInput>(DEFAULT_INPUT);
-  const [tab, setTab] = useState<"mac" | "chor">("mac");
+  const [tab, setTab] = useState<"mac" | "par" | "chor">("mac");
   const [sick, setSick] = useState({ days: 60, startDate: new Date().toISOString().slice(0, 10), used: 0, sickOn: true, lossOn: false, lossDate: new Date().toISOString().slice(0, 10), lossReason: "liquidation" as JobLossReason });
 
   useEffect(() => {
@@ -148,6 +149,7 @@ export default function CalculatorPage() {
         </div>
         <div className="flex rounded-xl bg-slate-200 p-1 text-sm">
           <button onClick={() => setTab("mac")} className={`px-3 py-1.5 rounded-lg ${tab === "mac" ? "bg-white shadow font-semibold" : ""}`}>Zasiłek macierzyński</button>
+          <button onClick={() => setTab("par")} className={`px-3 py-1.5 rounded-lg ${tab === "par" ? "bg-white shadow font-semibold" : ""}`}>Podział rodzicielskiego</button>
           <button onClick={() => setTab("chor")} className={`px-3 py-1.5 rounded-lg ${tab === "chor" ? "bg-white shadow font-semibold" : ""}`}>W ciąży</button>
         </div>
       </div>
@@ -258,7 +260,9 @@ export default function CalculatorPage() {
 
         {/* ---------- RESULTS ---------- */}
         <div className="space-y-4 min-w-0">
-          {tab === "chor" ? (
+          {tab === "par" ? (
+            <ParentalPlanner input={input} params={params} />
+          ) : tab === "chor" ? (
             <section className="card space-y-4">
               <h2>Świadczenia w czasie ciąży – matka</h2>
               <div className="grid sm:grid-cols-3 gap-3">
