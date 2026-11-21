@@ -92,7 +92,7 @@ sequenceDiagram
 | Pobranie danych z ZUS: ubezpieczenie, zadłużenie, e-ZLA (symulacja) | `/pulpit`, `GET /api/zus/:id` |
 | Kontakt z PUE/eZUS (symulacja) | `/pulpit` |
 | Wnioski o urlopy, ZAM, odpis aktu urodzenia (symulacja wysyłki) | `/wnioski` |
-| Upload / wybór wniosków PDF, weryfikacja ubezpieczenia | `/sprawy`, `POST /api/parse` |
+| Upload / wybór wniosków PDF, skanów i zdjęć (OCR), weryfikacja ubezpieczenia | `/sprawy`, `POST /api/parse` |
 | Analiza całego zestawu dokumentów sprawy (Z-3, ZAM, poświadczenie, zrzut z systemu, e-ZLA): ubezpieczenie w dniu porodu, podstawa z tabeli miesięcy, wyliczenie i porównanie z rozstrzygnięciem ZUS w zestawie | `/sprawy`, `POST /api/dossier` |
 | Pracodawca (płatnik) wystawia Z-3 / Z-3a z 12 miesięcy wynagrodzeń i wysyła do sprawy w ZUS – urzędnik widzi je z kontrolą krzyżową | `/pracodawca` |
 | Obsługa spraw przez urzędnika: kolejka spraw, karta osoby (dane ZUS, wnioski, wyliczenie), rekomendacja systemu, decyzja: przyznanie / odmowa / wezwanie – widoczna u obywatela | `/admin/sprawy` |
@@ -141,14 +141,14 @@ Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) �
 - Ograniczenie prób logowania (5 nieudanych / 15 min → 429) i porównania w stałym czasie.
 - Zasada dwóch par oczu dla decyzji odmownych; notatki wewnętrzne nigdy nie trafiają do API obywatela.
 - Nagłówki: CSP, HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy.
-- Odczyt PDF: warstwa tekstowa + wartości pól interaktywnych formularzy (AcroForm, jak w formularzach ZUS), dopasowanie odporne na brak polskich znaków.
+- Odczyt dokumentów: warstwa tekstowa PDF + wartości pól interaktywnych formularzy (AcroForm, jak w formularzach ZUS) + OCR (Tesseract, język polski, model lokalny – bez internetu) dla skanów i zdjęć; dopasowanie odporne na brak polskich znaków.
 - Pliki PDF przetwarzane w pamięci (limit 4 MB), nie są zapisywane; statystyki tylko jako anonimowe liczniki kategorii.
 - Produkcja: logowanie mObywatel/login.gov.pl i SSO domenowe ZUS w miejsce symulacji, baza danych z audytem.
 
 ## Testy
 
 - `npm test` – 32 testy jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
-- `npm run test:api` – 13 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
+- `npm run test:api` – 14 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
 - GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu: testy silnika → typecheck → build produkcyjny → start serwera → testy e2e API.
 
 ## Źródła prawne i weryfikacja

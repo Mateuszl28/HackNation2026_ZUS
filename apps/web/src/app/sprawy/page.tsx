@@ -51,9 +51,9 @@ export default function Cases() {
         <h2>Pojedynczy dokument (PDF)</h2>
         <label className={`flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-8 cursor-pointer transition ${busy ? "opacity-60" : "hover:border-brand hover:bg-brand-light/40"} border-slate-300`}>
           <Upload className="text-brand" />
-          <span className="font-semibold">{busy ? "Odczytuję…" : "Kliknij lub upuść pliki PDF"}</span>
+          <span className="font-semibold">{busy ? "Odczytuję… (OCR dla skanów i zdjęć)" : "Kliknij i wybierz PDF, skan lub zdjęcie dokumentu"}</span>
           <span className="text-xs text-muted">Pliki są przetwarzane w pamięci i nie są zapisywane.</span>
-          <input type="file" multiple accept=".pdf,.txt" className="hidden" onChange={(e) => upload(e.target.files)} disabled={busy} />
+          <input type="file" multiple accept=".pdf,.txt,.jpg,.jpeg,.png,.webp" className="hidden" onChange={(e) => upload(e.target.files)} disabled={busy} />
         </label>
         <div className="flex items-center gap-2 text-sm">
           Dane z dokumentu przypisz do:

@@ -5,7 +5,7 @@ import { CheckCircle2, FileStack, HelpCircle, Upload, XCircle } from "lucide-rea
 import { pln, type DossierProfile } from "@zus/engine";
 import { useSession } from "@/lib/session";
 
-type Result = DossierProfile & { scans?: string[]; error?: string };
+type Result = DossierProfile & { scans?: string[]; ocrUsed?: string[]; error?: string };
 const TITLE: Record<string, string> = { employment: "Umowa o pracę", mandate: "Umowa zlecenia", business: "Działalność gospodarcza" };
 const OUT: Record<string, string> = { granted: "przyznano", refused: "odmowa", unknown: "brak rozstrzygnięcia" };
 
@@ -39,15 +39,15 @@ export default function DossierPanel() {
       </div>
       <label className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 p-6 transition ${busy ? "opacity-60" : "hover:bg-brand-light/40"}`}>
         <Upload className="text-brand" />
-        <span className="font-semibold">{busy ? "Analizuję zestaw…" : "Wybierz kilka plików PDF jednej sprawy"}</span>
+        <span className="font-semibold">{busy ? "Analizuję zestaw… (skany i zdjęcia rozpoznaje OCR – to chwilę trwa)" : "Wybierz kilka plików jednej sprawy – PDF, skany lub zdjęcia"}</span>
         <span className="text-xs text-muted">Pliki są przetwarzane w pamięci i nie są zapisywane.</span>
-        <input type="file" multiple accept=".pdf,.txt" className="hidden" disabled={busy} onChange={(e) => analyze(e.target.files)} />
+        <input type="file" multiple accept=".pdf,.txt,.jpg,.jpeg,.png,.webp" className="hidden" disabled={busy} onChange={(e) => analyze(e.target.files)} />
       </label>
 
       {r?.error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{r.error}</p>}
       {r && !r.error && (
         <div className="space-y-4">
-          <p className="text-xs text-muted">Pliki: {names.join(", ")}{r.scans?.length ? ` · bez warstwy tekstowej (skany): ${r.scans.join(", ")}` : ""}</p>
+          <p className="text-xs text-muted">Pliki: {names.join(", ")}{r.ocrUsed?.length ? ` · rozpoznane przez OCR: ${r.ocrUsed.join(", ")}` : ""}{r.scans?.length ? ` · nie udało się odczytać: ${r.scans.join(", ")}` : ""}</p>
 
           <div className="grid gap-3 md:grid-cols-3">
             <div className={`rounded-2xl border-2 p-4 ${r.insuredOnEvent === true ? "border-brand/40 bg-brand-light/50" : r.insuredOnEvent === false ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}>

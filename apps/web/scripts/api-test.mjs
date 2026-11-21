@@ -146,3 +146,15 @@ test("Analiza zestawu dokumentów: ubezpieczenie, podstawa i zgodność z decyzj
   assert.equal(j.agreement, true);
   assert.ok(j.result.total > 0);
 });
+
+test("OCR: zdjęcie dokumentu Z-3 (fikcyjne dane) → odczyt pól", async () => {
+  const { readFileSync } = await import("node:fs");
+  const img = readFileSync(new URL("./fixtures/z3-scan.png", import.meta.url));
+  const fd = new FormData();
+  fd.append("file", new Blob([img], { type: "image/png" }), "z3-scan.png");
+  const j = await (await fetch(BASE + "/api/parse", { method: "POST", body: fd })).json();
+  assert.ok(j.ocr, "powinien zostać użyty OCR");
+  assert.equal(j.title, "employment");
+  assert.equal(j.monthlyBase, 7100);
+  assert.equal(j.eventDate, "2026-05-12");
+});

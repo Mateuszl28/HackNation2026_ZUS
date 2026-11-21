@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."),
   poweredByHeader: false,
+  // OCR: natywny canvas i Tesseract poza bundlerem; model językowy dołączony do obrazu standalone
+  serverExternalPackages: ["tesseract.js", "@napi-rs/canvas", "@tesseract.js-data/pol"],
+  outputFileTracingIncludes: { "/api/**": ["../../node_modules/@tesseract.js-data/pol/4.0.0/**", "../../node_modules/tesseract.js-core/**"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

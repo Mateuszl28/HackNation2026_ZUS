@@ -9,19 +9,22 @@
     "test:api": "node --test scripts/api-test.mjs"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.2.0",
+    "@tesseract.js-data/pol": "^1.0.0",
     "@zus/engine": "*",
+    "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "unpdf": "latest",
-    "lucide-react": "latest"
+    "tesseract.js": "^7.0.0",
+    "unpdf": "latest"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",
-    "tailwindcss": "latest",
-    "typescript": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
   }
 }
