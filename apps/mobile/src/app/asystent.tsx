@@ -45,7 +45,7 @@ export default function Assistant() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}>
           {SUGGESTED_QUESTIONS.map((sq) => <Pill key={sq} label={sq} onPress={() => ask(sq)} />)}
         </ScrollView>
-        <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: 96, backgroundColor: C.surface, borderRadius: R.pill, paddingLeft: 16, paddingRight: 6, paddingVertical: 6 }, shadow]}>
+        <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: Platform.OS === 'ios' ? 96 : 12, backgroundColor: C.surface, borderRadius: R.pill, paddingLeft: 16, paddingRight: 6, paddingVertical: 6 }, shadow]}>
           <TextInput value={q} onChangeText={setQ} onSubmitEditing={() => ask(q)} placeholder="Zadaj pytanie…" placeholderTextColor="#9ca3af" style={{ flex: 1, fontSize: 16, color: C.ink, paddingVertical: 8 }} returnKeyType="send" />
           <Pressable onPress={() => ask(q)} disabled={!q.trim()} accessibilityLabel="Wyślij" style={({ pressed }) => ({ width: 42, height: 42, borderRadius: 21, backgroundColor: q.trim() ? C.brand : '#d1d5db', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
             <Icon name={I.send} size={20} color="#fff" />

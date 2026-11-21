@@ -87,7 +87,7 @@ export function Screen({ title, subtitle, children, scroll = true, right }: { ti
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
       {scroll ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 120 : 24 }} showsVerticalScrollIndicator={false}>
           {head}
           <View style={{ paddingHorizontal: 16 }}>{children}</View>
         </ScrollView>

@@ -31,8 +31,8 @@ export default function Calculator() {
 
   return (
     <Screen
-      title="Przewodnik Rodzica"
-      subtitle={`Parametry v${params.version}`}
+      title="Kalkulator"
+      subtitle={`Przewodnik Rodzica · parametry v${params.version}`}
       right={
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: online ? C.brandLight : '#eceff1', paddingHorizontal: 10, paddingVertical: 5, borderRadius: R.pill }}>
           <Icon name={online ? I.wifi : I.wifiOff} size={14} color={online ? C.brand : C.muted} />
@@ -59,7 +59,7 @@ export default function Calculator() {
 
       <SectionLabel>Sytuacja</SectionLabel>
       <Card>
-        <Segmented options={[['birth', 'Poród'], ['adoption', 'Adopcja'], ['foster', 'Rodz. zastępcza']]} value={input.scenario} onChange={(v) => set({ scenario: v })} />
+        <Segmented options={[['birth', 'Poród'], ['adoption', 'Adopcja'], ['foster', 'Zastępcza']]} value={input.scenario} onChange={(v) => set({ scenario: v })} />
         <TextField label="Data porodu / przyjęcia (RRRR-MM-DD)" value={input.eventDate} onChange={(t) => set({ eventDate: t })} />
         <Stepper label="Liczba dzieci" value={input.children} min={1} max={8} onChange={(n) => set({ children: n })} />
         {input.scenario !== 'birth' && <Stepper label="Wiek dziecka" value={input.childAgeYears ?? 0} min={0} max={14} suffix="lat" onChange={(n) => set({ childAgeYears: n })} />}
