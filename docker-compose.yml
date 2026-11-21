@@ -1,0 +1,24 @@
+services:
+  web:
+    build: .
+    image: przewodnik-rodzica:latest
+    ports:
+      - "3000:3000"
+    environment:
+      # ZMIEŃ w produkcji – sekret podpisu sesji pracowników ZUS
+      ADMIN_SECRET: ${ADMIN_SECRET:-zmien-mnie-na-dlugi-losowy-sekret}
+      ADMIN_LOGIN: ${ADMIN_LOGIN:-urzednik}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-zus2026}
+      MANAGER_LOGIN: ${MANAGER_LOGIN:-kierownik}
+      MANAGER_PASSWORD: ${MANAGER_PASSWORD:-zus2026k}
+      # tryb demo (szybkie logowanie i reset dla jury) – w produkcji: off
+      DEMO_MODE: ${DEMO_MODE:-on}
+      # opcjonalna warstwa AI asystenta
+      AI_GATEWAY_API_KEY: ${AI_GATEWAY_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+    volumes:
+      - zpr-data:/app/apps/web/data # parametry, historia zmian, sprawy, statystyki
+    restart: unless-stopped
+
+volumes:
+  zpr-data:

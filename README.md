@@ -14,11 +14,68 @@ apps/web          – Next.js (App Router) + Tailwind: aplikacja RWD/PWA + REST 
 apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym silniku, parametry pobierane z API
 ```
 
+## Architektura
+
+```mermaid
+flowchart LR
+  subgraph Klienci
+    O[Obywatel – web RWD/PWA]
+    M[Aplikacja mobilna – Expo]
+    P[Pracodawca – płatnik]
+    U[Urzędnik / kierownik ZUS]
+  end
+  subgraph "apps/web (Next.js)"
+    UI[Strony + panel urzędnika]
+    API[REST API /api/*]
+    PX[proxy.ts – ochrona /admin]
+  end
+  E[("packages/engine<br/>reguły ustawy zasiłkowej i KP<br/>(TypeScript, testy)")]
+  S[("Magazyn: parametry, historia,<br/>sprawy, decyzje, statystyki")]
+  X["Integracje (symulowane):<br/>mObywatel · CSI ZUS · e-ZLA · PUE/eZUS · USC"]
+  O --> UI
+  P --> UI
+  U --> PX --> UI
+  UI --> API
+  M -- parametry --> API
+  M --- E
+  UI --- E
+  API --- E
+  API --- S
+  API -.-> X
+```
+
+Jeden silnik obliczeń (`packages/engine`) działa w przeglądarce, na serwerze i w aplikacji mobilnej (offline). Parametry prawne są danymi – urzędnik zmienia je w panelu bez wdrażania kodu.
+
+### Obieg sprawy
+
+```mermaid
+sequenceDiagram
+  actor Ob as Obywatel
+  actor Pł as Pracodawca
+  participant Z as ZUS (urzędnik)
+  actor K as Kierownik
+  Ob->>Z: wniosek ZAM (z planu)
+  Pł->>Z: zaświadczenie Z-3 (kontrola krzyżowa)
+  Z->>Z: rekomendacja systemu + termin 30 dni
+  alt braki
+    Z->>Ob: wezwanie do uzupełnienia
+    Ob->>Z: dokumenty
+  end
+  alt odmowa
+    Z->>K: do zatwierdzenia (zasada dwóch par oczu)
+    K->>Ob: decyzja opublikowana
+  else przyznanie
+    Z->>Ob: decyzja + pismo + powiadomienie
+  end
+  Ob->>Z: odwołanie (opcjonalnie)
+  Z->>Ob: samokontrola (art. 477⁹ KPC) lub sąd
+```
+
 ## Funkcje
 
 | Wymaganie | Gdzie |
 |---|---|
-| Świadczenia w ciąży (chorobowy, kod „B”, okres wyczekiwania, wynagrodzenie chorobowe) | `/kalkulator` → zakładka „Chorobowy w ciąży” |
+| Świadczenia w ciąży: zasiłek chorobowy (kod „B”, okres wyczekiwania, wynagrodzenie chorobowe), świadczenie rehabilitacyjne, zasiłek w wysokości macierzyńskiego przy utracie pracy | `/kalkulator` → „W ciąży” |
 | Zintegrowany kalkulator: macierzyński, rodzicielski, ojcowski, uzupełniający (wcześniaki), „Za życiem”, ciąża mnoga, 81,5%, łączenie z pracą, podział między rodziców, adopcja, rodzina zastępcza, martwe urodzenie | `/kalkulator` |
 | Planer podziału urlopu rodzicielskiego: do 5 części, naprzemiennie lub jednocześnie, praca do 1/2 etatu – z walidacją puli, 9 tyg. na wyłączność i terminu (KP art. 182¹a–182¹e) | `/kalkulator` → „Podział rodzicielskiego” |
 | Indywidualna podstawa wymiaru (13,71%, minimum, limit dla dobrowolnych) | silnik `computeBase` |
@@ -48,6 +105,11 @@ apps/mobile       – Expo / React Native: aplikacja Android/iOS na tym samym si
 - `POST /api/sickness` – zasiłek chorobowy w ciąży
 - `POST /api/parse` – PDF (multipart `file`) → odczytane pola dokumentu ZUS
 - `GET  /api/cases`, `GET /api/zus/:id` – sprawy demonstracyjne i symulacja danych ZUS
+- `POST /api/applications/documents` – dokument do sprawy (obywatel / Z-3 od płatnika); `POST /api/applications/appeal` – odwołanie
+- `POST /api/admin/cases/:id/approve` – zatwierdzenie / zwrot odmowy (kierownik); `.../appeal` – rozpatrzenie odwołania; `.../notes` – notatki wewnętrzne
+- `GET  /api/admin/export?type=cases|stats` – eksport CSV; `GET /api/stats` – anonimowe statystyki (urzędnik)
+- `POST /api/assistant` – asystent (reguły, opcjonalnie AI); `POST /api/events` – anonimowe zdarzenia
+- `POST /api/demo/official?role=`, `POST /api/demo/reset` – tryb demo (wyłączany `DEMO_MODE=off`)
 
 ## Uruchomienie
 
@@ -58,6 +120,28 @@ npm test             # testy silnika (jednostkowe)
 npm run test:api     # testy end-to-end REST API (na działającym serwerze, BASE_URL)
 cd apps/mobile && npm install && npx expo start   # mobile (EXPO_PUBLIC_API_URL=http://<ip>:3000)
 ```
+
+## Wdrożenie (Docker)
+
+```bash
+docker compose up -d --build      # http://localhost:3000
+```
+
+Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) → lekki obraz `node:24-alpine` uruchamiany jako użytkownik bez uprawnień root, z healthcheckiem. Dane (parametry, historia, sprawy) w wolumenie `zpr-data`. Konfiguracja wyłącznie przez zmienne środowiskowe (`ADMIN_SECRET`, `ADMIN_*`, `MANAGER_*`, `DEMO_MODE`, `AI_*`) – w produkcji ustaw `DEMO_MODE=off` i własny `ADMIN_SECRET`.
+
+## Bezpieczeństwo
+
+- Panel urzędnika chroniony po stronie serwera (`proxy.ts` + każdy endpoint): podpisane ciasteczko httpOnly/SameSite=Strict (HMAC-SHA256), ważność 8 h, role urzędnik/kierownik zapisane w podpisie.
+- Ograniczenie prób logowania (5 nieudanych / 15 min → 429) i porównania w stałym czasie.
+- Zasada dwóch par oczu dla decyzji odmownych; notatki wewnętrzne nigdy nie trafiają do API obywatela.
+- Nagłówki: CSP, HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy.
+- Pliki PDF przetwarzane w pamięci (limit 4 MB), nie są zapisywane; statystyki tylko jako anonimowe liczniki kategorii.
+- Produkcja: logowanie mObywatel/login.gov.pl i SSO domenowe ZUS w miejsce symulacji, baza danych z audytem.
+
+## Testy
+
+- `npm test` – 26 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
+- `npm run test:api` – 12 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
 
 ## Źródła prawne i weryfikacja
 
