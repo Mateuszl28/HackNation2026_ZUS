@@ -158,3 +158,24 @@ test("OCR: zdjęcie dokumentu Z-3 (fikcyjne dane) → odczyt pól", async () => 
   assert.equal(j.monthlyBase, 7100);
   assert.equal(j.eventDate, "2026-05-12");
 });
+
+test("Weryfikacja zbiorcza: ZIP + folder, zgodność z rozstrzygnięciami ZUS", async () => {
+  const { zipSync, strToU8 } = await import("fflate");
+  const z3 = "Z-3\nUmowa o pracę od dnia 01.02.2021\nPodlega ubezpieczeniu chorobowemu\nPrzeciętne wynagrodzenie: 7 100,00\nData porodu: 12.05.2026";
+  const zip1 = zipSync({ "z3.txt": strToU8(z3), "decyzja.txt": strToU8("Decyzja: przyznano zasiłek macierzyński") });
+  const zip2 = zipSync({ "z3.txt": strToU8("Z-3\nUmowa o pracę\nOkres ubezpieczenia od 01.02.2021 do 31.01.2026\nPrzeciętne wynagrodzenie: 6 000,00\nData porodu: 12.05.2026"), "decyzja.txt": strToU8("ZUS odmawia prawa do zasiłku macierzyńskiego") });
+  const fd = new FormData();
+  fd.append("files", new Blob([zip1]), "sprawa-1.zip");
+  fd.append("files", new Blob([zip2]), "sprawa-2.zip");
+  fd.append("files", new Blob([z3 + "\nStatus: przyznano zasiłek"]), "zestawy/sprawa-3/z3.txt");
+  const unauth = await fetch(BASE + "/api/admin/batch", { method: "POST", body: fd });
+  assert.equal(unauth.status, 401);
+  const j = await (await fetch(BASE + "/api/admin/batch", { method: "POST", body: fd, headers: { cookie } })).json();
+  assert.equal(j.summary.cases, 3);
+  const byCase = Object.fromEntries(j.rows.map((r) => [r.case, r]));
+  assert.equal(byCase["sprawa-1"].agreement, true);
+  assert.equal(byCase["sprawa-2"].insuredOnEvent, false);
+  assert.equal(byCase["sprawa-2"].agreement, true);
+  assert.equal(byCase["sprawa-3"].verdict, "granted");
+  assert.equal(j.summary.rate, 100);
+});

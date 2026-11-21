@@ -12,6 +12,7 @@
     "@napi-rs/canvas": "^1.2.0",
     "@tesseract.js-data/pol": "^1.0.0",
     "@zus/engine": "*",
+    "fflate": "^0.8.3",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

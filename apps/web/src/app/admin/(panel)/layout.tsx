@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, FolderKanban, ExternalLink, HeartHandshake, History, Landmark, LayoutDashboard, LogOut, Menu, RotateCcw, Save, SlidersHorizontal, UserRound, X } from "lucide-react";
+import { BarChart3, FolderKanban, ListChecks, ExternalLink, HeartHandshake, History, Landmark, LayoutDashboard, LogOut, Menu, RotateCcw, Save, SlidersHorizontal, UserRound, X } from "lucide-react";
 import { AdminProvider, useAdmin } from "@/components/admin/AdminContext";
 
 const NAV = [
   { href: "/admin", label: "Przegląd", icon: LayoutDashboard },
   { href: "/admin/sprawy", label: "Sprawy", icon: FolderKanban },
+  { href: "/admin/weryfikacja", label: "Weryfikacja zbiorcza", icon: ListChecks },
   { href: "/admin/parametry", label: "Parametry prawne", icon: SlidersHorizontal },
   { href: "/admin/organizacje", label: "Organizacje wsparcia", icon: HeartHandshake },
   { href: "/admin/statystyki", label: "Statystyki", icon: BarChart3 },
