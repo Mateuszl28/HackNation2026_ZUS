@@ -2,9 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Calculator, ChevronDown, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
+import { Baby, Bot, Calculator, ChevronDown, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
+import { isProtected } from "@/components/AuthGate";
 
 const PRIMARY = [
   { href: "/pulpit", label: "Pulpit", icon: LayoutDashboard },
@@ -67,6 +68,7 @@ export default function Nav() {
               >
                 <l.icon size={16} strokeWidth={active(l.href) ? 2.4 : 2} />
                 {l.label}
+                {!session.user && isProtected(l.href) && <Lock size={11} className="text-slate-400" />}
               </Link>
             ))}
             <div ref={moreRef} className="relative">
@@ -83,7 +85,7 @@ export default function Nav() {
                     <Link key={m.href} href={m.href} className={`flex items-start gap-3 rounded-xl p-3 transition hover:bg-slate-50 ${active(m.href) ? "bg-brand-light/60" : ""}`}>
                       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-light text-brand"><m.icon size={18} /></span>
                       <span>
-                        <span className="block text-sm font-semibold text-ink">{m.label}</span>
+                        <span className="flex items-center gap-1 text-sm font-semibold text-ink">{m.label}{!session.user && isProtected(m.href) && <Lock size={11} className="text-slate-400" />}</span>
                         <span className="block text-xs text-muted">{m.desc}</span>
                       </span>
                     </Link>

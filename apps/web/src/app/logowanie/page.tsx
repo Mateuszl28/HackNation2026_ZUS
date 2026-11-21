@@ -22,7 +22,8 @@ export default function Login() {
     if (step !== "ok") return;
     const c = DEMO_CASES.find((c) => c.id === caseId)!;
     update({ user: { name: c.title.split(" – ")[0], caseId }, input: c.input });
-    const t = setTimeout(() => router.push("/pulpit"), 900);
+    const next = new URLSearchParams(window.location.search).get("next");
+    const t = setTimeout(() => router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : "/pulpit"), 900);
     return () => clearTimeout(t);
   }, [step, caseId, update, router]);
 
