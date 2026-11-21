@@ -71,7 +71,7 @@ export default function Dashboard() {
             <div className="card border-l-4 border-l-accent">
               <div className="flex items-center gap-2 font-semibold"><FileHeart className="text-accent" /> Szacowany zasiłek łącznie</div>
               <p className="text-2xl font-bold mt-2">{pln(result!.total)}</p>
-              <Link href="/kalkulator" className="text-sm text-accent font-semibold">Zmień plan w kalkulatorze →</Link>
+              <span className="flex flex-wrap gap-x-3 text-sm font-semibold"><Link href="/plan" className="text-accent">Mój plan i checklista →</Link><Link href="/kalkulator" className="text-accent">Kalkulator →</Link></span>
             </div>
           </div>
 

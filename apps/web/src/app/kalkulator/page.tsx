@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { calculate, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
+import { calculate, decodePlan, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
@@ -115,7 +115,10 @@ export default function CalculatorPage() {
   const [sick, setSick] = useState({ days: 60, startDate: new Date().toISOString().slice(0, 10), used: 0, sickOn: true, lossOn: false, lossDate: new Date().toISOString().slice(0, 10), lossReason: "liquidation" as JobLossReason });
 
   useEffect(() => {
-    if (ready && session.input) setInput({ ...DEFAULT_INPUT, ...session.input, plan: { ...DEFAULT_INPUT.plan, ...session.input.plan } });
+    const shared = new URLSearchParams(window.location.search).get("plan");
+    const fromLink = shared ? decodePlan(shared) : null;
+    const src = fromLink ?? session.input;
+    if (ready && src) setInput({ ...DEFAULT_INPUT, ...src, plan: { ...DEFAULT_INPUT.plan, ...src.plan } });
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (patch: Partial<CalcInput>) => setInput((i) => ({ ...i, ...patch }));

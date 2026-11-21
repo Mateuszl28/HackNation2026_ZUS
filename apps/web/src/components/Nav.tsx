@@ -2,19 +2,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Calculator, ChevronDown, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
+import { Baby, Bot, Calculator, ChevronDown, ListChecks, Lock, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
 import { isProtected } from "@/components/AuthGate";
 
 const PRIMARY = [
   { href: "/pulpit", label: "Pulpit", icon: LayoutDashboard },
+  { href: "/plan", label: "Mój plan", icon: ListChecks },
   { href: "/kalkulator", label: "Kalkulator", icon: Calculator },
   { href: "/asystent", label: "Asystent", icon: Bot },
-  { href: "/przewodnik", label: "Przewodnik", icon: Map },
   { href: "/sprawy", label: "Dokumenty", icon: FolderOpen },
 ];
 const MORE = [
+  { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
   { href: "/wnioski", label: "Wnioski", desc: "Urlopy, ZAM, odpis aktu urodzenia", icon: FileText },
   { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
   { href: "/admin", label: "Panel admina", desc: "Parametry prawne i stawki", icon: Settings },
@@ -64,7 +65,7 @@ export default function Nav() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${active(l.href) ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:bg-white/70 hover:text-ink"}`}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${active(l.href) ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:bg-white/70 hover:text-ink"}`}
               >
                 <l.icon size={16} strokeWidth={active(l.href) ? 2.4 : 2} />
                 {l.label}

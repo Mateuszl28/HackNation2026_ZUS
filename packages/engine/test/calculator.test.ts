@@ -156,3 +156,16 @@ test("asystent: utrata pracy i świadczenie rehabilitacyjne", () => {
   assert.equal(answerQuestion("pracodawca ogłosił likwidację, jestem w ciąży").intent, "utrata");
   assert.equal(answerQuestion("co po 270 dniach L4?").intent, "rehab");
 });
+
+import { buildChecklist, decodePlan, encodePlan, pregnancyProgress } from "../src/checklist.ts";
+
+test("checklista, postęp ciąży, link do planu", () => {
+  const c = DEMO_CASES.find((c) => c.id === "kasia-jdg")!;
+  const items = buildChecklist(c.input, calculate(c.input), "2026-11-21");
+  assert.ok(items.some((i) => i.id.startsWith("debt-") && i.critical));
+  assert.ok(new Set(items.map((i) => i.id)).size === items.length);
+  const p = pregnancyProgress("2027-01-20", "2026-11-21");
+  assert.equal(p.week, 31);
+  assert.equal(p.trimester, 3);
+  assert.deepEqual(decodePlan(encodePlan(c.input)), c.input);
+});

@@ -10,3 +10,4 @@ export * from "./planning.ts";
 export * from "./assistant.ts";
 export * from "./base.ts";
 export * from "./pregnancy.ts";
+export * from "./checklist.ts";
