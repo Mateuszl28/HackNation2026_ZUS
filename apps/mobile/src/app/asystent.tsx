@@ -1,20 +1,22 @@
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { answerQuestion, SUGGESTED_QUESTIONS } from '@zus/engine';
+import { answerQuestion, calculate, SUGGESTED_QUESTIONS } from '@zus/engine';
+import { usePlan } from '@/lib/plan-store';
 import { C, useRemoteConfig } from '@/lib/ui';
 
 interface Msg { role: 'user' | 'bot'; text: string }
 
 export default function Assistant() {
   const { params } = useRemoteConfig();
+  const { input } = usePlan();
   const [msgs, setMsgs] = useState<Msg[]>([{ role: 'bot', text: 'Cześć! Zapytaj o zasiłek, urlopy, dokumenty albo ryzyka. Działam także bez internetu.' }]);
   const [q, setQ] = useState('');
   const scroll = useRef<{ scrollToEnd: (o?: { animated?: boolean }) => void } | null>(null);
 
   const ask = (question: string) => {
     if (!question.trim()) return;
-    const a = answerQuestion(question, params);
+    const a = answerQuestion(question, params, input, calculate(input, params));
     setMsgs((m) => [...m, { role: 'user', text: question }, { role: 'bot', text: a.text }]);
     setQ('');
     setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);

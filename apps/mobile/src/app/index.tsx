@@ -1,20 +1,12 @@
 import { useMemo, useState } from 'react';
+import { usePlan } from '@/lib/plan-store';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { calculate, deadlines, pln, DEMO_CASES, type CalcInput, type InsuranceTitle, type ParentInput } from '@zus/engine';
+import { calculate, calculatePregnancyBenefits, deadlines, pln, DEMO_CASES, JOB_LOSS_LABELS, type CalcInput, type InsuranceTitle, type JobLossReason, type ParentInput } from '@zus/engine';
 import { C, Card, H, Muted, NumField, Segmented, TextField, Toggle, useRemoteConfig } from '@/lib/ui';
 
 const TITLES: [InsuranceTitle, string][] = [['employment', 'Etat'], ['mandate', 'Zlecenie'], ['business', 'Firma'], ['none', 'Brak']];
 const COLORS: Record<string, string> = { maternity: C.brand, maternityFather: '#0284c7', adoptionMaternity: C.brand, supplementary: '#34d399', parental: '#0d9488', paternity: '#6366f1', prenatal: C.brand };
-
-const START: CalcInput = {
-  scenario: 'birth',
-  eventDate: new Date(Date.now() + 120 * 86400000).toISOString().slice(0, 10),
-  children: 1,
-  mother: { title: 'employment', monthlyBase: 7000, largeEmployer: true },
-  father: { title: 'employment', monthlyBase: 7000 },
-  plan: { motherParentalWeeks: 32, fatherParentalWeeks: 9, paternity: true },
-};
 
 function Parent({ name, p, set }: { name: string; p: ParentInput; set: (p: ParentInput) => void }) {
   return (
@@ -28,7 +20,9 @@ function Parent({ name, p, set }: { name: string; p: ParentInput; set: (p: Paren
 
 export default function Calculator() {
   const { params, online } = useRemoteConfig();
-  const [input, setInput] = useState<CalcInput>(START);
+  const { input, setInput } = usePlan();
+  const [preg, setPreg] = useState({ sickOn: false, sickFrom: new Date().toISOString().slice(0, 10), sickDays: 60, lossOn: false, lossDate: new Date().toISOString().slice(0, 10), reason: 'liquidation' as JobLossReason });
+  const pr = useMemo(() => calculatePregnancyBenefits({ parent: input.mother, dueDate: input.eventDate, sickFrom: preg.sickOn ? preg.sickFrom : undefined, sickDays: preg.sickOn ? preg.sickDays : 0, jobLoss: preg.lossOn ? { date: preg.lossDate, reason: preg.reason } : undefined }, params), [input, preg, params]);
   const r = useMemo(() => calculate(input, params), [input, params]);
   const set = (p: Partial<CalcInput>) => setInput((i) => ({ ...i, ...p }));
   const plan = (p: Partial<CalcInput['plan']>) => setInput((i) => ({ ...i, plan: { ...i.plan, ...p } }));
@@ -81,6 +75,38 @@ export default function Calculator() {
           <Toggle label="81,5% za cały okres" value={!!input.plan.oneApplication} onChange={(b) => plan({ oneApplication: b })} />
           <Toggle label="Matka łączy rodzicielski z pracą (1/2)" value={!!input.plan.workFraction} onChange={(b) => plan({ workFraction: b ? { who: 'mother', fraction: 0.5 } : undefined })} />
         </Card>
+
+        {input.scenario === 'birth' && (
+          <Card>
+            <H>W ciąży (do porodu)</H>
+            <Toggle label="Zwolnienie lekarskie (kod B)" value={preg.sickOn} onChange={(b) => setPreg({ ...preg, sickOn: b })} />
+            {preg.sickOn && (
+              <>
+                <TextField label="Początek L4 (RRRR-MM-DD)" value={preg.sickFrom} onChange={(t) => setPreg({ ...preg, sickFrom: t })} />
+                <NumField label="Przewidywana liczba dni L4" value={preg.sickDays} suffix="dni" onChange={(n) => setPreg({ ...preg, sickDays: n })} />
+              </>
+            )}
+            <Toggle label="Utrata pracy w ciąży" value={preg.lossOn} onChange={(b) => setPreg({ ...preg, lossOn: b })} />
+            {preg.lossOn && (
+              <>
+                <TextField label="Ostatni dzień pracy (RRRR-MM-DD)" value={preg.lossDate} onChange={(t) => setPreg({ ...preg, lossDate: t })} />
+                <Segmented options={[['liquidation', 'Likwidacja'], ['bankruptcy', 'Upadłość'], ['other', 'Inna']]} value={preg.reason === 'liquidation' || preg.reason === 'bankruptcy' ? preg.reason : 'other'} onChange={(v) => setPreg({ ...preg, reason: v as JobLossReason })} />
+                <Muted>{JOB_LOSS_LABELS[preg.reason]}</Muted>
+              </>
+            )}
+            {pr.segments.map((x, i) => (
+              <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderColor: C.border }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={{ fontWeight: '600', color: C.ink }}>{x.label}</Text>
+                  <Muted>{x.from} – {x.to} · {x.days} dni · {x.payer}</Muted>
+                </View>
+                <Text style={{ fontWeight: '700', color: C.ink }}>{pln(x.amount)}</Text>
+              </View>
+            ))}
+            {(preg.sickOn || preg.lossOn) && <Text style={{ marginTop: 8, fontWeight: '700', color: C.brand }}>Razem do porodu: {pln(pr.total)}</Text>}
+            {pr.notices.filter((n) => n.level !== 'info').map((n, i) => <Text key={i} style={{ marginTop: 6, fontSize: 13, color: '#92400e' }}>⚠ {n.title}: {n.text}</Text>)}
+          </Card>
+        )}
 
         <Card>
           <H>Okresy</H>
