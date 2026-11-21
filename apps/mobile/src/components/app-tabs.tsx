@@ -7,6 +7,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Kalkulator</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('@/assets/images/tabIcons/home.png')} renderingMode="template" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="asystent">
+        <NativeTabs.Trigger.Label>Asystent</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon src={require('@/assets/images/tabIcons/explore.png')} renderingMode="template" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="przewodnik">
         <NativeTabs.Trigger.Label>Przewodnik</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('@/assets/images/tabIcons/explore.png')} renderingMode="template" />

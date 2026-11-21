@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { calculate, pln, DEMO_CASES, type CalcInput, type InsuranceTitle, type ParentInput } from '@zus/engine';
+import { calculate, deadlines, pln, DEMO_CASES, type CalcInput, type InsuranceTitle, type ParentInput } from '@zus/engine';
 import { C, Card, H, Muted, NumField, Segmented, TextField, Toggle, useRemoteConfig } from '@/lib/ui';
 
 const TITLES: [InsuranceTitle, string][] = [['employment', 'Etat'], ['mandate', 'Zlecenie'], ['business', 'Firma'], ['none', 'Brak']];
@@ -103,6 +103,19 @@ export default function Calculator() {
             <Text style={{ fontSize: 13 }}>{n.text}</Text>
           </View>
         ))}
+
+        <Card>
+          <H>Terminy</H>
+          {deadlines(input, r, params).map((d, i) => (
+            <View key={i} style={{ flexDirection: 'row', gap: 10, paddingVertical: 6 }}>
+              <Text style={{ fontFamily: 'monospace', fontSize: 12, color: d.critical ? '#b91c1c' : C.muted, width: 84 }}>{d.date}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: '600', color: C.ink }}>{d.title}</Text>
+                <Muted>{d.description}</Muted>
+              </View>
+            </View>
+          ))}
+        </Card>
 
         <Card>
           <H>Dokumenty</H>
