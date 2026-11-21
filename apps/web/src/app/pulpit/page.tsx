@@ -27,7 +27,9 @@ export default function Dashboard() {
     setLoading(true);
     fetch(`/api/zus/${session.user.caseId}`).then((r) => r.json()).then(setData).finally(() => setLoading(false));
   };
-  useEffect(load, [session.user?.caseId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+  }, [session.user?.caseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!ready) return null;
   if (!session.user)
