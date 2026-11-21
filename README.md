@@ -93,6 +93,7 @@ sequenceDiagram
 | Kontakt z PUE/eZUS (symulacja) | `/pulpit` |
 | Wnioski o urlopy, ZAM, odpis aktu urodzenia (symulacja wysyłki) | `/wnioski` |
 | Upload / wybór wniosków PDF, weryfikacja ubezpieczenia | `/sprawy`, `POST /api/parse` |
+| Analiza całego zestawu dokumentów sprawy (Z-3, ZAM, poświadczenie, zrzut z systemu, e-ZLA): ubezpieczenie w dniu porodu, podstawa z tabeli miesięcy, wyliczenie i porównanie z rozstrzygnięciem ZUS w zestawie | `/sprawy`, `POST /api/dossier` |
 | Pracodawca (płatnik) wystawia Z-3 / Z-3a z 12 miesięcy wynagrodzeń i wysyła do sprawy w ZUS – urzędnik widzi je z kontrolą krzyżową | `/pracodawca` |
 | Obsługa spraw przez urzędnika: kolejka spraw, karta osoby (dane ZUS, wnioski, wyliczenie), rekomendacja systemu, decyzja: przyznanie / odmowa / wezwanie – widoczna u obywatela | `/admin/sprawy` |
 | Zasada dwóch par oczu: odmowa wydana przez urzędnika czeka na zatwierdzenie kierownika (zatwierdź / zwróć do poprawy); obywatel widzi tylko decyzje opublikowane | `/admin/sprawy` |
@@ -145,8 +146,8 @@ Obraz wieloetapowy: instalacja → testy silnika → `next build` (standalone) �
 
 ## Testy
 
-- `npm test` – 28 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
-- `npm run test:api` – 12 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
+- `npm test` – 30 testów jednostkowych silnika (wymiary urlopów, stawki, podstawa wymiaru, uzupełniający, 81,5%, ciąża, planer rodzicielskiego, rekomendacje decyzji, parser).
+- `npm run test:api` – 13 testów end-to-end REST API na działającym serwerze (kontrakty, zabezpieczenia, pełny obieg sprawy, odwołanie, zasada dwóch par oczu).
 - GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu: testy silnika → typecheck → build produkcyjny → start serwera → testy e2e API.
 
 ## Źródła prawne i weryfikacja

@@ -15,3 +15,4 @@ export * from "./employer.ts";
 export * from "./decision.ts";
 export * from "./whatif.ts";
 export * from "./parental.ts";
+export * from "./dossier.ts";

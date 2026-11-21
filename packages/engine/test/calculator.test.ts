@@ -256,3 +256,32 @@ test("zbieg tytułów: etat ≥ minimalnego + działalność – zasiłek tylko 
   const low = { title: "employment" as const, monthlyBase: 2000, secondTitle: { title: "business" as const, monthlyBase: 5000, voluntarySickness: true } };
   assert.equal(checkSecondTitle(low)!.counts, true); // etat poniżej minimalnego – działalność obowiązkowa
 });
+
+import { analyzeDossier } from "../src/dossier.ts";
+
+test("zestaw dokumentów: ubezpieczona w dniu porodu, zgodność z decyzją ZUS", () => {
+  const r = analyzeDossier([
+    { name: "Z-3.pdf", text: "ZAŚWIADCZENIE PŁATNIKA SKŁADEK Z-3\nUmowa o pracę\nPodlega ubezpieczeniu chorobowemu\n01.2026 7 000,00 21 21\n02.2026 7 000,00 20 20\n03.2026 7 000,00 22 22" },
+    { name: "ZAM.pdf", text: "ZAM Wniosek o zasiłek macierzyński. Data porodu 12.05.2026. Liczba dzieci: 1" },
+    { name: "poswiadczenie.pdf", text: "Poświadczenie ubezpieczenia chorobowego: ubezpieczenie chorobowe od 01.02.2021 do nadal" },
+    { name: "system.pdf", text: "Zrzut z systemu ZUS – status: przyznano zasiłek macierzyński" },
+  ]);
+  assert.equal(r.title, "employment");
+  assert.equal(r.eventDate, "2026-05-12");
+  assert.equal(r.insuredOnEvent, true);
+  assert.equal(r.monthlyBase, 6040.3);
+  assert.equal(r.verdict, "granted");
+  assert.equal(r.zusOutcome, "granted");
+  assert.equal(r.agreement, true);
+});
+
+test("zestaw dokumentów: umowa zakończona przed porodem → odmowa zgodna z ZUS", () => {
+  const r = analyzeDossier([
+    { name: "Z-3a.pdf", text: "Z-3a Umowa zlecenia, dobrowolne ubezpieczenie chorobowe od 01.03.2025 do 31.12.2025. Przeciętny przychód 4 200,00" },
+    { name: "ZAM.pdf", text: "ZAM data porodu 10.02.2026" },
+    { name: "decyzja.pdf", text: "Decyzja: odmowa prawa do zasiłku macierzyńskiego" },
+  ]);
+  assert.equal(r.insuredOnEvent, false);
+  assert.equal(r.verdict, "refused");
+  assert.equal(r.agreement, true);
+});

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, HelpCircle, Upload, XCircle } from "lucide-react";
 import { DEMO_CASES, calculate, pln, type ParsedDocument } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
+import DossierPanel from "@/components/DossierPanel";
 
 type Parsed = ParsedDocument & { textPreview?: string; error?: string; fileName?: string; computedBase?: number | null };
 
@@ -44,8 +45,10 @@ export default function Cases() {
         <p className="text-muted">Wybierz przykładową sprawę lub wgraj własny dokument (Z-3, Z-3a, ZAM, poświadczenie ubezpieczenia) – sprawdzimy ubezpieczenie i policzymy zasiłek.</p>
       </div>
 
+      <DossierPanel />
+
       <section className="card space-y-4">
-        <h2>Wgraj dokument (PDF)</h2>
+        <h2>Pojedynczy dokument (PDF)</h2>
         <label className={`flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-8 cursor-pointer transition ${busy ? "opacity-60" : "hover:border-brand hover:bg-brand-light/40"} border-slate-300`}>
           <Upload className="text-brand" />
           <span className="font-semibold">{busy ? "Odczytuję…" : "Kliknij lub upuść pliki PDF"}</span>

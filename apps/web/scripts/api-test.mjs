@@ -134,3 +134,15 @@ test("Zasada dwóch par oczu: odmowa urzędnika niewidoczna dla obywatela do zat
   const byManager = await (await api(`/api/admin/cases/${caseId}/decision`, { method: "POST", auth: "manager", json: { type: "refuse", justification: "Odmowa wydana przez kierownika.", legalBasis: ["art. 29"] } })).json();
   assert.equal(byManager.status, "published");
 });
+
+test("Analiza zestawu dokumentów: ubezpieczenie, podstawa i zgodność z decyzją ZUS", async () => {
+  const fd = new FormData();
+  fd.append("files", new Blob(["ZAŚWIADCZENIE PŁATNIKA SKŁADEK Z-3\nUmowa o pracę. Podlega ubezpieczeniu chorobowemu\n01.2026 7 000,00 21 21\n02.2026 7 000,00 20 20\n03.2026 7 200,00 22 22"], { type: "text/plain" }), "z3.txt");
+  fd.append("files", new Blob(["ZAM Data porodu: 12.05.2026"], { type: "text/plain" }), "zam.txt");
+  fd.append("files", new Blob(["Ubezpieczenie chorobowe od 01.02.2021 do nadal. Status: przyznano zasiłek macierzyński"], { type: "text/plain" }), "system.txt");
+  const j = await (await fetch(BASE + "/api/dossier", { method: "POST", body: fd })).json();
+  assert.equal(j.insuredOnEvent, true);
+  assert.equal(j.verdict, "granted");
+  assert.equal(j.agreement, true);
+  assert.ok(j.result.total > 0);
+});
