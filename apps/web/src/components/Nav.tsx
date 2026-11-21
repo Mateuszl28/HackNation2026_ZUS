@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, Settings, X } from "lucide-react";
+import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
 import { isProtected } from "@/components/AuthGate";
@@ -19,11 +19,10 @@ const L = {
   przewodnik: { href: "/przewodnik", label: "Przewodnik", desc: "Krok po kroku: od ciąży do powrotu do pracy", icon: Map },
   pracodawca: { href: "/pracodawca", label: "Dla pracodawcy", desc: "Kto wypłaca zasiłek, koszty, obowiązki i terminy", icon: Briefcase },
   wsparcie: { href: "/wsparcie", label: "Wsparcie", desc: "Organizacje i pomoc w trudnych chwilach", icon: HeartHandshake },
-  admin: { href: "/admin", label: "Panel admina", desc: "Parametry prawne, statystyki", icon: Settings },
 } satisfies Record<string, Item>;
 const MENU = {
-  guest: { primary: [L.kreator, L.asystent, L.przewodnik, L.pracodawca, L.wsparcie], more: [L.kalk, L.docs, L.wnioski, L.admin] },
-  user: { primary: [L.pulpit, L.plan, L.kalk, L.asystent, L.docs], more: [L.wnioski, L.kreator, L.przewodnik, L.pracodawca, L.wsparcie, L.admin] },
+  guest: { primary: [L.kreator, L.asystent, L.przewodnik, L.pracodawca, L.wsparcie], more: [L.kalk, L.docs, L.wnioski] },
+  user: { primary: [L.pulpit, L.plan, L.kalk, L.asystent, L.docs], more: [L.wnioski, L.kreator, L.przewodnik, L.pracodawca, L.wsparcie] },
 };
 
 export default function Nav() {

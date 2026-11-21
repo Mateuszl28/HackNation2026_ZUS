@@ -50,14 +50,14 @@ function Ranking({ title, data, labels, total }: { title: string; data: Record<s
   );
 }
 
-export default function StatsPanel({ token }: { token: string }) {
+export default function StatsPanel() {
   const [s, setS] = useState<Stats | null>(null);
   const [err, setErr] = useState("");
   const load = useCallback(() => {
-    fetch("/api/stats", { headers: { "x-admin-token": token } })
-      .then(async (r) => (r.ok ? (setS(await r.json()), setErr("")) : setErr("Podaj token administratora, aby zobaczyć statystyki.")))
+    fetch("/api/stats")
+      .then(async (r) => (r.ok ? (setS(await r.json()), setErr("")) : setErr("Sesja urzędnika wygasła – zaloguj się ponownie.")))
       .catch(() => setErr("Błąd połączenia"));
-  }, [token]);
+  }, []);
   useEffect(() => {
     load();
   }, [load]);

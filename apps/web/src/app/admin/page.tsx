@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Lock, RotateCcw, Save } from "lucide-react";
+import { LogOut, RotateCcw, Save, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { Params, SupportOrg } from "@zus/engine";
 import StatsPanel from "@/components/StatsPanel";
 
@@ -47,14 +48,22 @@ const setIn = (o: any, p: string, v: unknown) => { // eslint-disable-line @types
 };
 
 export default function Admin() {
-  const [token, setToken] = useState("");
+  const router = useRouter();
+  const [official, setOfficial] = useState("");
   const [cfg, setCfg] = useState<Config | null>(null);
   const [msg, setMsg] = useState("");
   const [note, setNote] = useState("");
-  useEffect(() => { fetch("/api/params").then((r) => r.json()).then(setCfg); }, []);
+  useEffect(() => {
+    fetch("/api/params").then((r) => r.json()).then(setCfg);
+    fetch("/api/admin/session").then((r) => r.json()).then((j) => setOfficial(j.login ?? ""));
+  }, []);
+  const logout = async () => {
+    await fetch("/api/admin/session", { method: "DELETE" });
+    router.replace("/admin/logowanie");
+  };
 
   const save = async (body: unknown) => {
-    const r = await fetch("/api/params", { method: "PUT", headers: { "content-type": "application/json", "x-admin-token": token }, body: JSON.stringify(body) });
+    const r = await fetch("/api/params", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     const j = await r.json();
     if (!r.ok) return setMsg("❌ " + j.error);
     setCfg(j);
@@ -69,7 +78,7 @@ export default function Admin() {
           <h1>Panel administracyjny</h1>
           <p className="text-muted">Parametry prawne v{cfg.params.version} · ostatnia zmiana {cfg.params.updatedAt}. Zmiana działa natychmiast w webie, API i aplikacji mobilnej.</p>
         </div>
-        <label className="flex items-center gap-2"><Lock size={16} /><input className="input !w-40" type="password" placeholder="Token (demo: admin)" value={token} onChange={(e) => setToken(e.target.value)} /></label>
+        <div className="flex items-center gap-2"><span className="chip bg-accent/10 !py-1.5 text-accent"><ShieldCheck size={14} className="mr-1" /> Urzędnik: {official || "…"}</span><button className="btn-ghost !py-1.5 text-sm" onClick={logout}><LogOut size={15} /> Wyloguj</button></div>
       </div>
       <section className="card">
         <h2 className="mb-4">Parametry</h2>
@@ -87,7 +96,7 @@ export default function Admin() {
         <h2 className="mb-2">Organizacje wsparcia (JSON)</h2>
         <textarea className="input font-mono text-xs h-56" defaultValue={JSON.stringify(cfg.support, null, 2)} onBlur={(e) => { try { setCfg({ ...cfg, support: JSON.parse(e.target.value) }); setMsg(""); } catch { setMsg("❌ Niepoprawny JSON"); } }} />
       </section>
-      <StatsPanel token={token} />
+      <StatsPanel />
       <section className="card">
         <h2 className="mb-3">Historia zmian (audyt)</h2>
         {!cfg.history?.length ? <p className="text-sm text-muted">Brak zmian – obowiązują parametry domyślne.</p> : (
