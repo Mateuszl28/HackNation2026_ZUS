@@ -2,9 +2,28 @@
 import { useEffect, useState, useCallback } from "react";
 import { DEFAULT_PARAMS, calculate, type CalcInput, type Params } from "@zus/engine";
 
+export interface SentApplication {
+  id: string;
+  title: string;
+  to: string;
+  sentAt: number;
+}
+
 export interface Session {
   user?: { name: string; caseId: string };
   input?: CalcInput;
+  applications?: SentApplication[];
+}
+
+/** Symulowany status wniosku w PUE/eZUS – zależny od czasu od wysłania (przyspieszony na potrzeby demo). */
+export function applicationStatus(a: SentApplication, now = Date.now()) {
+  const s = (now - a.sentAt) / 1000;
+  const employer = a.to.startsWith("Pracodawca");
+  const steps = employer
+    ? ["Wysłany do pracodawcy", "Przyjęty przez kadry", "Urlop udzielony"]
+    : ["Złożony – UPO wydane", "W weryfikacji (sprawdzenie ubezpieczenia i podstawy)", "Decyzja: świadczenie przyznane"];
+  const step = s < 20 ? 0 : s < 60 ? 1 : 2;
+  return { steps, step, done: step === 2 };
 }
 
 const KEY = "zpr-session";

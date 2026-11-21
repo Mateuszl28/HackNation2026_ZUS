@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AlertTriangle, CheckCircle2, FileHeart, MessageSquare, RefreshCw, Wallet, XCircle } from "lucide-react";
 import { calculate, calculatePregnancySickness, diffDays, pln, type CalcInput } from "@zus/engine";
 import { useParams, useSession } from "@/lib/session";
+import ApplicationsTracker from "@/components/ApplicationsTracker";
 
 interface ZusData {
   source: string;
@@ -123,6 +124,8 @@ export default function Dashboard() {
               </ul>
             </section>
           )}
+
+          <ApplicationsTracker />
 
           <section className="card">
             <h2 className="mb-2 flex items-center gap-2"><MessageSquare className="text-accent" /> Zapytaj ZUS (symulacja PUE/eZUS)</h2>

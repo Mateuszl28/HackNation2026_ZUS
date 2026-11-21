@@ -86,7 +86,12 @@ function LeaveDocument({ p, name, oneApp, onClose }: { p: Period; name: string; 
 }
 
 export default function Applications() {
-  const { session } = useSession();
+  const { session, update } = useSession();
+  const addApp = (title: string, to: string) => {
+    const id = `${to.startsWith("Pracodawca") ? "PR" : "ZUS"}-${Date.now().toString().slice(-8)}`;
+    update({ applications: [{ id, title, to, sentAt: Date.now() }, ...(session.applications ?? [])].slice(0, 20) });
+    return id;
+  };
   const params = useParams();
   const [form, setForm] = useState<FormKey>("zam");
   const [sent, setSent] = useState<string | null>(null);
@@ -132,7 +137,7 @@ export default function Applications() {
                   {sentLeaves[i] ? (
                     <span className="chip bg-brand-light text-brand !py-1.5"><CheckCircle2 size={14} className="mr-1" />{sentLeaves[i]}</span>
                   ) : (
-                    <button className="btn-primary !py-1.5 text-sm" onClick={() => setSentLeaves({ ...sentLeaves, [i]: `wysłano · ${Date.now().toString().slice(-6)}` })}><Send size={15} /> Wyślij do pracodawcy</button>
+                    <button className="btn-primary !py-1.5 text-sm" onClick={() => setSentLeaves({ ...sentLeaves, [i]: `wysłano · ${addApp(`Wniosek o udzielenie ${LEAVE_NAME[p.type]}`, "Pracodawca")}` })}><Send size={15} /> Wyślij do pracodawcy</button>
                   )}
                 </div>
               </li>
@@ -154,9 +159,9 @@ export default function Applications() {
         <h2>{f.title}</h2>
         <p className="text-sm text-muted">{f.desc}</p>
         {sent ? (
-          <div className="rounded-xl bg-brand-light p-4 text-brand flex gap-3"><CheckCircle2 /> <span>Wniosek wysłany (symulacja) do: <b>{f.to}</b>. Numer: <b>{sent}</b>. Potwierdzenie (UPO) zapisano na koncie.</span></div>
+          <div className="rounded-xl bg-brand-light p-4 text-brand flex gap-3"><CheckCircle2 /> <span>Wniosek wysłany (symulacja) do: <b>{f.to}</b>. Numer: <b>{sent}</b>. Potwierdzenie (UPO) zapisano na koncie – status śledzisz na <Link href="/pulpit" className="underline">pulpicie</Link>.</span></div>
         ) : (
-          <form className="grid sm:grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); setSent(`${form.toUpperCase()}-${Date.now().toString().slice(-8)}`); }}>
+          <form className="grid sm:grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); setSent(addApp(f.title, f.to)); }}>
             <label className="block"><span className="label">Imię i nazwisko</span><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></label>
             {field("pesel", "PESEL")}
             {form === "zam" && (
