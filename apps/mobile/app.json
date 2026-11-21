@@ -33,6 +33,22 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Aplikacja używa aparatu, aby sfotografować dokument (np. zaświadczenie Z-3) i odczytać z niego dane do kalkulatora.",
+          "photosPermission": "Aplikacja odczytuje wybrane zdjęcie dokumentu, aby uzupełnić dane w kalkulatorze.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

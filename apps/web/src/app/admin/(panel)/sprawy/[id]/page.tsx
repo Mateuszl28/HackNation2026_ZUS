@@ -6,6 +6,8 @@ import { AlertTriangle, ArrowLeft, Check, Scale, StickyNote, FileText, Gavel, In
 import { DECISION_LABELS, pln, type CalcResult, type DecisionType, type DemoCase, type Recommendation } from "@zus/engine";
 import DecisionLetter, { type DecisionDoc } from "@/components/DecisionLetter";
 import { useAdmin } from "@/components/admin/AdminContext";
+import ExplainPanel from "@/components/ExplainPanel";
+import { useParams as useLawParams } from "@/lib/session";
 
 interface Detail {
   case: DemoCase;
@@ -36,6 +38,7 @@ function draftJustification(d: Detail, type: DecisionType) {
 
 export default function CaseDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const lawParams = useLawParams();
   const router = useRouter();
   const [d, setD] = useState<Detail | null>(null);
   const [type, setType] = useState<DecisionType | null>(null);
@@ -199,6 +202,8 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
             </table>
             <p className="mt-2 text-right font-bold">Łącznie: {pln(d.result.total)}</p>
           </section>
+
+          <ExplainPanel input={d.case.input} result={d.result} params={lawParams} />
 
           {d.result.notices.length > 0 && (
             <section className="space-y-2">

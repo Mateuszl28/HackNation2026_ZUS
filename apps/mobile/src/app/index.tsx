@@ -1,19 +1,41 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { calculate, calculatePregnancyBenefits, deadlines, pln, DEMO_CASES, JOB_LOSS_LABELS, type CalcInput, type InsuranceTitle, type JobLossReason, type ParentInput } from '@zus/engine';
+import { calculate, calculatePregnancyBenefits, checkSecondTitle, deadlines, pln, DEMO_CASES, JOB_LOSS_LABELS, type CalcInput, type InsuranceTitle, type JobLossReason, type ParentInput } from '@zus/engine';
 import { C, Card, H, Hero, I, Icon, Muted, Notice, Pill, R, Screen, SectionLabel, Segmented, Stepper, TextField, Toggle, s, useRemoteConfig } from '@/lib/ui';
 import { usePlan } from '@/lib/plan-store';
+import { ScanCard } from '@/components/scan-card';
+import type { Params } from '@zus/engine';
 
 const TITLES: [InsuranceTitle, string][] = [['employment', 'Etat'], ['mandate', 'Zlecenie'], ['business', 'Firma'], ['none', 'Brak']];
 const COLORS: Record<string, string> = { maternity: C.brand, maternityFather: '#0284c7', adoptionMaternity: C.brand, supplementary: '#34d399', parental: '#0d9488', paternity: '#6366f1', prenatal: C.brand };
 const plnShort = (n: number) => `${Math.round(n).toLocaleString('pl-PL')} zł`;
 
-function Parent({ name, p, set }: { name: string; p: ParentInput; set: (p: ParentInput) => void }) {
+const SECOND: [Exclude<InsuranceTitle, 'none'>, string][] = [['employment', 'Etat'], ['mandate', 'Zlecenie'], ['business', 'Firma']];
+
+function Parent({ name, p, set, params }: { name: string; p: ParentInput; set: (p: ParentInput) => void; params: Params }) {
+  const st = p.secondTitle;
+  const chk = p.title !== 'none' && st ? checkSecondTitle(p, params) : null;
   return (
     <View>
       <Text style={{ fontWeight: '700', fontSize: 15, marginBottom: 8, color: C.ink }}>{name}</Text>
       <Segmented options={TITLES} value={p.title} onChange={(t) => set({ ...p, title: t })} />
       {p.title !== 'none' && <Stepper label={p.title === 'business' ? 'Podstawa składek' : 'Brutto / mies.'} value={p.monthlyBase} step={250} min={0} format={plnShort} onChange={(n) => set({ ...p, monthlyBase: n })} />}
+      {p.title !== 'none' && (
+        <Toggle label="Drugi tytuł ubezpieczenia" hint="Np. etat + zlecenie lub firma" value={!!st} onChange={(b) => set({ ...p, secondTitle: b ? { title: p.title === 'mandate' ? 'employment' : 'mandate', monthlyBase: 2000, voluntarySickness: true } : undefined })} />
+      )}
+      {p.title !== 'none' && st && (
+        <View style={{ backgroundColor: C.bg, borderRadius: R.sm, padding: 10, marginTop: 4 }}>
+          <Segmented options={SECOND} value={st.title} onChange={(t) => set({ ...p, secondTitle: { ...st, title: t } })} />
+          <Stepper label="Podstawa z 2. tytułu" value={st.monthlyBase} step={250} min={0} format={plnShort} onChange={(n) => set({ ...p, secondTitle: { ...st, monthlyBase: n } })} />
+          {st.title !== 'employment' && <Toggle label="Dobrowolne chorobowe" hint="Zgłoszenie z tego tytułu" value={!!st.voluntarySickness} onChange={(b) => set({ ...p, secondTitle: { ...st, voluntarySickness: b } })} />}
+          {chk && (
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+              <Icon name={chk.counts ? I.layers : I.info} size={16} color={chk.counts ? C.brand : C.muted} />
+              <Text style={{ flex: 1, fontSize: 12, color: chk.counts ? C.brand : C.muted, fontWeight: '600' }}>{chk.counts ? `Wliczamy do podstawy: +${plnShort(chk.base)}. ` : 'Nie zwiększa zasiłku. '}<Text style={{ fontWeight: '400', color: C.muted }}>{chk.reason}</Text></Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -57,6 +79,9 @@ export default function Calculator() {
         {DEMO_CASES.map((c) => <Pill key={c.id} label={c.title.split(' – ')[0]} active={caseId === c.id} onPress={() => setInput(c.input)} />)}
       </ScrollView>
 
+      <SectionLabel>Dokument</SectionLabel>
+      <ScanCard onApply={({ mother, eventDate }) => setInput((i) => ({ ...i, ...(eventDate ? { eventDate } : {}), mother: { ...i.mother, ...mother } }))} />
+
       <SectionLabel>Sytuacja</SectionLabel>
       <Card>
         <Segmented options={[['birth', 'Poród'], ['adoption', 'Adopcja'], ['foster', 'Zastępcza']]} value={input.scenario} onChange={(v) => set({ scenario: v })} />
@@ -75,9 +100,9 @@ export default function Calculator() {
 
       <SectionLabel>Rodzice</SectionLabel>
       <Card>
-        <Parent name="Mama" p={input.mother} set={(p) => set({ mother: p })} />
+        <Parent name="Mama" p={input.mother} params={params} set={(p) => set({ mother: p })} />
         <View style={[s.divider, { marginVertical: 12 }]} />
-        <Parent name="Tata" p={input.father} set={(p) => set({ father: p })} />
+        <Parent name="Tata" p={input.father} params={params} set={(p) => set({ father: p })} />
       </Card>
 
       <SectionLabel>Plan urlopów</SectionLabel>

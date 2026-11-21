@@ -299,3 +299,13 @@ test("parser: etykieta bez wartości na stronie + pole formularza w osobnej lini
   assert.equal(d.eventDate, "2026-05-12");
   assert.equal(d.insuredSince, "2021-02-01");
 });
+
+test("explainCalculation: kroki sumują się do wyniku kalkulatora", async () => {
+  const { explainCalculation } = await import("../src/explain.ts");
+  const input = DEMO_CASES[0].input;
+  const r = calculate(input);
+  const ex = explainCalculation(input, r);
+  const sum = ex.reduce((a, s) => a + s.total, 0);
+  assert.ok(Math.abs(sum - r.total) < 0.05, `${sum} vs ${r.total}`);
+  assert.ok(ex[0].steps.some((s) => s.label.includes("Odliczenie składek")));
+});

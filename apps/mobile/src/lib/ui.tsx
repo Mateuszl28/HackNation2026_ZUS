@@ -71,6 +71,10 @@ export const I = {
   plus: { ios: 'plus', android: 'add' },
   wifi: { ios: 'wifi', android: 'wifi' },
   wifiOff: { ios: 'wifi.slash', android: 'wifi_off' },
+  scan: { ios: 'doc.viewfinder', android: 'document_scanner' },
+  camera: { ios: 'camera.fill', android: 'photo_camera' },
+  photo: { ios: 'photo.on.rectangle', android: 'photo_library' },
+  layers: { ios: 'square.stack.3d.up', android: 'layers' },
 } satisfies Record<string, IconName>;
 
 // ---------- layout ----------

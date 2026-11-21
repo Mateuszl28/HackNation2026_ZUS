@@ -4,6 +4,7 @@ import { calculate, checkSecondTitle, decodePlan, calculatePregnancyBenefits, JO
 import { DEFAULT_INPUT, reportPlan, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
 import ParentalPlanner from "@/components/ParentalPlanner";
+import ExplainPanel from "@/components/ExplainPanel";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
 
 const TITLES: [InsuranceTitle, string][] = [
@@ -350,6 +351,8 @@ export default function CalculatorPage() {
               </section>
 
               <Notices list={result.notices} />
+
+              <ExplainPanel input={input} result={result} params={params} />
 
               <section className="card">
                 <h2 className="mb-3 flex items-center gap-2"><FileText className="text-accent" /> Dokumenty i gdzie je złożyć</h2>
