@@ -84,6 +84,16 @@ const INTENTS: Intent[] = [
     },
   },
   {
+    id: "utrata",
+    keys: ["likwidac", "upadlos", "upadl", "stracilam prace", "stracila prace", "utrata pracy", "smierc pracodawcy", "syndyk"],
+    answer: (p) => `Jeśli w ciąży rozwiązano z Tobą umowę o pracę z powodu upadłości, likwidacji lub śmierci pracodawcy (albo z naruszeniem prawa – potwierdzone prawomocnym wyrokiem) i nie masz innej pracy, przysługuje zasiłek w wysokości zasiłku macierzyńskiego (${pct(p.rates.maternity)}) od dnia po ustaniu zatrudnienia do porodu, a potem zasiłek macierzyński. Przy innej przyczynie ubezpieczenie ustaje – ale umowa na czas określony, która skończyłaby się po 3. miesiącu ciąży, przedłuża się do dnia porodu. Policz to w kalkulatorze (zakładka „W ciąży”).`,
+  },
+  {
+    id: "rehab",
+    keys: ["rehabilitac", "270 dni", "okres zasilkowy", "po 270", "dluga choroba"],
+    answer: (p) => `Zasiłek chorobowy przysługuje maks. ${p.sicknessPeriodDays} dni. Jeśli dalej jesteś niezdolna do pracy, możesz dostać świadczenie rehabilitacyjne – maks. ${Math.round((p.rehabMaxDays ?? 365) / 30)} mies.; gdy niezdolność przypada w ciąży, wynosi ${pct(p.rates.rehabPregnancy ?? 1)} podstawy. Wniosek ZNp-7 z zaświadczeniem N-9 złóż ok. 6 tygodni przed końcem okresu zasiłkowego; decyduje lekarz orzecznik ZUS.`,
+  },
+  {
     id: "zwolnienie",
     keys: ["zwolnic", "wypowiedz", "ochron", "umowa na czas okreslony"],
     answer: () => `W ciąży i w czasie urlopów rodzicielskich (od złożenia wniosku) pracodawca nie może wypowiedzieć ani rozwiązać umowy (wyjątek: zawinione rozwiązanie za zgodą związków). Umowa na czas określony, która skończyłaby się po 3. miesiącu ciąży, przedłuża się do dnia porodu. Ochrona nie dotyczy zleceń ani działalności.`,

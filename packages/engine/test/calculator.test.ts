@@ -134,3 +134,25 @@ test("odczyt miesięcy z tekstu Z-3", () => {
   assert.equal(r[0].gross, 7250);
   assert.equal(r[0].workedDays, 21);
 });
+
+import { calculatePregnancyBenefits } from "../src/pregnancy.ts";
+
+test("ciąża: wynagrodzenie → zasiłek → świadczenie rehabilitacyjne, koniec przed porodem", () => {
+  const r = calculatePregnancyBenefits({ parent: { title: "employment", monthlyBase: 6000, insuredSince: "2020-01-01" }, dueDate: "2027-12-31", sickFrom: "2027-01-01", sickDays: 400 });
+  assert.deepEqual(r.segments.map((s) => [s.kind, s.days]), [["employerSick", 33], ["sickness", 237], ["rehab", 94]]);
+  assert.equal(r.segments.at(-1)!.to, "2027-12-30");
+});
+
+test("ciąża: likwidacja pracodawcy → zasiłek w wysokości macierzyńskiego do porodu", () => {
+  const r = calculatePregnancyBenefits({ parent: { title: "employment", monthlyBase: 6000 }, dueDate: "2027-06-01", jobLoss: { date: "2027-03-31", reason: "liquidation" } });
+  assert.equal(r.segments[0].kind, "maternityEquivalent");
+  assert.equal(r.segments[0].from, "2027-04-01");
+  assert.equal(r.segments[0].to, "2027-05-31");
+  const r2 = calculatePregnancyBenefits({ parent: { title: "employment", monthlyBase: 6000 }, dueDate: "2027-06-01", jobLoss: { date: "2027-03-31", reason: "other" } });
+  assert.equal(r2.segments.length, 0);
+});
+
+test("asystent: utrata pracy i świadczenie rehabilitacyjne", () => {
+  assert.equal(answerQuestion("pracodawca ogłosił likwidację, jestem w ciąży").intent, "utrata");
+  assert.equal(answerQuestion("co po 270 dniach L4?").intent, "rehab");
+});

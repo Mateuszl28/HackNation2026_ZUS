@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { calculate, calculatePregnancySickness, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
+import { calculate, calculatePregnancyBenefits, JOB_LOSS_LABELS, type JobLossReason, compareVariants, deadlines, toICS, pln, diffDays, type CalcInput, type ParentInput, type Period, type InsuranceTitle } from "@zus/engine";
 import { DEFAULT_INPUT, useParams, useSession } from "@/lib/session";
 import BaseCalculator from "@/components/BaseCalculator";
 import { AlertTriangle, Info, OctagonAlert, FileText, Building2, Landmark, CalendarPlus, Printer, Scale, Trophy } from "lucide-react";
@@ -112,7 +112,7 @@ export default function CalculatorPage() {
   const { session, ready, update } = useSession();
   const [input, setInput] = useState<CalcInput>(DEFAULT_INPUT);
   const [tab, setTab] = useState<"mac" | "chor">("mac");
-  const [sick, setSick] = useState({ days: 60, startDate: new Date().toISOString().slice(0, 10), used: 0 });
+  const [sick, setSick] = useState({ days: 60, startDate: new Date().toISOString().slice(0, 10), used: 0, sickOn: true, lossOn: false, lossDate: new Date().toISOString().slice(0, 10), lossReason: "liquidation" as JobLossReason });
 
   useEffect(() => {
     if (ready && session.input) setInput({ ...DEFAULT_INPUT, ...session.input, plan: { ...DEFAULT_INPUT.plan, ...session.input.plan } });
@@ -121,7 +121,7 @@ export default function CalculatorPage() {
   const set = (patch: Partial<CalcInput>) => setInput((i) => ({ ...i, ...patch }));
   const setPlan = (patch: Partial<CalcInput["plan"]>) => setInput((i) => ({ ...i, plan: { ...i.plan, ...patch } }));
   const result = useMemo(() => calculate(input, params), [input, params]);
-  const sickRes = useMemo(() => calculatePregnancySickness({ parent: input.mother, startDate: sick.startDate, days: sick.days, usedDaysThisYear: sick.used }, params), [input.mother, sick, params]);
+  const preg = useMemo(() => calculatePregnancyBenefits({ parent: input.mother, dueDate: input.eventDate, sickFrom: sick.sickOn ? sick.startDate : undefined, sickDays: sick.sickOn ? sick.days : 0, usedDaysThisYear: sick.used, jobLoss: sick.lossOn ? { date: sick.lossDate, reason: sick.lossReason } : undefined }, params), [input.mother, input.eventDate, sick, params]);
   const cmp = useMemo(() => compareVariants(input, params), [input, params]);
   const dl = useMemo(() => deadlines(input, result, params), [input, result, params]);
   const bestId = cmp.variants.reduce((a, b) => (b.result.total > a.result.total ? b : a)).id;
@@ -145,7 +145,7 @@ export default function CalculatorPage() {
         </div>
         <div className="flex rounded-xl bg-slate-200 p-1 text-sm">
           <button onClick={() => setTab("mac")} className={`px-3 py-1.5 rounded-lg ${tab === "mac" ? "bg-white shadow font-semibold" : ""}`}>Zasiłek macierzyński</button>
-          <button onClick={() => setTab("chor")} className={`px-3 py-1.5 rounded-lg ${tab === "chor" ? "bg-white shadow font-semibold" : ""}`}>Chorobowy w ciąży</button>
+          <button onClick={() => setTab("chor")} className={`px-3 py-1.5 rounded-lg ${tab === "chor" ? "bg-white shadow font-semibold" : ""}`}>W ciąży</button>
         </div>
       </div>
 
@@ -222,10 +222,27 @@ export default function CalculatorPage() {
           )}
           {tab === "chor" && (
             <section className="card space-y-3">
-              <h2>Zwolnienie lekarskie w ciąży (kod B)</h2>
-              <label className="block"><span className="label">Początek niezdolności</span><input type="date" className="input" value={sick.startDate} onChange={(e) => setSick({ ...sick, startDate: e.target.value })} /></label>
-              <Num label="Liczba dni L4" value={sick.days} suffix="dni" onChange={(n) => setSick({ ...sick, days: n })} />
-              <Num label="Dni choroby już wykorzystane w tym roku" value={sick.used} suffix="dni" onChange={(n) => setSick({ ...sick, used: n })} />
+              <h2>Ciąża – matka</h2>
+              <p className="text-xs text-muted">Termin porodu: {input.eventDate} (zmienisz w sekcji „Sytuacja”).</p>
+              <Check label="Zwolnienie lekarskie w ciąży (e-ZLA, kod B)" checked={sick.sickOn} onChange={(b) => setSick({ ...sick, sickOn: b })} />
+              {sick.sickOn && (
+                <>
+                  <label className="block"><span className="label">Początek niezdolności</span><input type="date" className="input" value={sick.startDate} onChange={(e) => setSick({ ...sick, startDate: e.target.value })} /></label>
+                  <Num label="Przewidywana liczba dni L4" value={sick.days} suffix="dni" onChange={(n) => setSick({ ...sick, days: n })} />
+                  <Num label="Dni choroby już wykorzystane w tym roku" value={sick.used} suffix="dni" onChange={(n) => setSick({ ...sick, used: n })} />
+                </>
+              )}
+              <Check label="Utrata pracy w czasie ciąży" hint="Upadłość, likwidacja lub śmierć pracodawcy – zasiłek do porodu" checked={sick.lossOn} onChange={(b) => setSick({ ...sick, lossOn: b })} />
+              {sick.lossOn && (
+                <>
+                  <label className="block"><span className="label">Ostatni dzień zatrudnienia</span><input type="date" className="input" value={sick.lossDate} onChange={(e) => setSick({ ...sick, lossDate: e.target.value })} /></label>
+                  <label className="block"><span className="label">Przyczyna</span>
+                    <select className="input" value={sick.lossReason} onChange={(e) => setSick({ ...sick, lossReason: e.target.value as JobLossReason })}>
+                      {(Object.keys(JOB_LOSS_LABELS) as JobLossReason[]).map((k) => <option key={k} value={k}>{JOB_LOSS_LABELS[k]}</option>)}
+                    </select>
+                  </label>
+                </>
+              )}
             </section>
           )}
           <button className="btn-ghost w-full" onClick={() => update({ input })}>Zapisz plan na pulpicie</button>
@@ -235,14 +252,33 @@ export default function CalculatorPage() {
         <div className="space-y-4 min-w-0">
           {tab === "chor" ? (
             <section className="card space-y-4">
-              <h2>Zasiłek chorobowy w ciąży – matka</h2>
+              <h2>Świadczenia w czasie ciąży – matka</h2>
               <div className="grid sm:grid-cols-3 gap-3">
-                <Stat label="Wynagrodzenie chorobowe (pracodawca)" value={pln(sickRes.employerAmount)} sub={`${sickRes.employerDays} dni`} />
-                <Stat label="Zasiłek chorobowy (ZUS/płatnik)" value={pln(sickRes.zusAmount)} sub={`${sickRes.zusDays} dni`} />
-                <Stat label="Razem (100% podstawy)" value={pln(sickRes.total)} sub={`podstawa ${pln(sickRes.base)}`} strong />
+                <Stat label="Podstawa wymiaru" value={pln(preg.base)} sub="miesięcznie" />
+                <Stat label="Dni świadczeń do porodu" value={String(preg.segments.reduce((a, x) => a + x.days, 0))} sub={`${preg.segments.length} okres(y)`} />
+                <Stat label="Razem do porodu" value={pln(preg.total)} sub="potem zasiłek macierzyński" strong />
               </div>
-              <Notices list={sickRes.notices} />
-              <p className="text-xs text-muted">Okres zasiłkowy: max {params.sicknessPeriodDays} dni. Jeśli niezdolność trwa do porodu – od dnia porodu przysługuje zasiłek macierzyński.</p>
+              {preg.segments.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[560px] text-sm [&_td]:px-2 [&_th]:px-2 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0">
+                    <thead className="border-b text-left text-muted"><tr><th className="py-2">Świadczenie</th><th>Od – do</th><th className="text-right">Dni</th><th className="text-right">%</th><th>Wypłaca</th><th className="text-right">Kwota</th></tr></thead>
+                    <tbody>
+                      {preg.segments.map((x, i) => (
+                        <tr key={i} className="border-b border-slate-100">
+                          <td className="py-2">{x.label}</td>
+                          <td className="whitespace-nowrap">{x.from} – {x.to}</td>
+                          <td className="text-right">{x.days}</td>
+                          <td className="text-right">{Math.round(x.rate * 100)}</td>
+                          <td>{x.payer}</td>
+                          <td className="whitespace-nowrap text-right font-semibold">{pln(x.amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <Notices list={preg.notices} />
+              <p className="text-xs text-muted">Okres zasiłkowy: max {params.sicknessPeriodDays} dni, potem świadczenie rehabilitacyjne (w ciąży 100%). Od dnia porodu przysługuje zasiłek macierzyński – zakładka „Zasiłek macierzyński”.</p>
             </section>
           ) : (
             <>

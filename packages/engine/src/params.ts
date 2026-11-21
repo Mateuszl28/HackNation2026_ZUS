@@ -9,7 +9,9 @@ export interface Params {
     parental: number; // urlop rodzicielski
     oneApplication: number; // wniosek do 21 dni po porodzie (cały okres)
     sicknessPregnancy: number; // zasiłek chorobowy w ciąży (kod B)
+    rehabPregnancy?: number; // świadczenie rehabilitacyjne – niezdolność w ciąży
   };
+  rehabMaxDays?: number;
   oneApplicationDeadlineDays: number;
   socialContributionEmployeeRate: number; // 13,71% – potrącenie z podstawy
   maternityWeeksByChildren: number[]; // indeks = liczba dzieci - 1 (5+ → ostatni)
@@ -43,7 +45,8 @@ export interface Params {
 export const DEFAULT_PARAMS: Params = {
   version: "2026.11",
   updatedAt: "2026-11-21",
-  rates: { maternity: 1, parental: 0.7, oneApplication: 0.815, sicknessPregnancy: 1 },
+  rates: { maternity: 1, parental: 0.7, oneApplication: 0.815, sicknessPregnancy: 1, rehabPregnancy: 1 },
+  rehabMaxDays: 365,
   oneApplicationDeadlineDays: 21,
   socialContributionEmployeeRate: 0.1371,
   maternityWeeksByChildren: [20, 31, 33, 35, 37],
