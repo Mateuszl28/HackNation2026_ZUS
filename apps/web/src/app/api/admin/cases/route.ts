@@ -2,6 +2,7 @@ import { calculate, DEMO_CASES, recommendDecision } from "@zus/engine";
 import { adminFromRequest, unauthorized } from "@/lib/admin-auth";
 import { allCases } from "@/lib/cases-store";
 import { getConfig } from "@/lib/params-store";
+import { sla } from "@/lib/case-checks";
 
 /** GET – lista spraw (osób) z rekomendacją systemu i statusem. Tylko urzędnik. */
 export async function GET(req: Request) {
@@ -30,6 +31,9 @@ export async function GET(req: Request) {
         lastApplicationAt: Math.max(apps[0]?.sentAt ?? 0, lastDocAt ?? 0) || null,
         documents: docs.length,
         docsAfterDecision: !!(last && lastDocAt && lastDocAt > new Date(last.at).getTime()),
+        sla: sla(
+          [...apps.map((a) => a.sentAt), ...docs.map((d) => d.at)].filter((t) => !last || t > new Date(last.at).getTime()).sort((a, b) => a - b)[0] ?? null,
+        ),
         decision: last ? { type: last.type, at: last.at, by: last.by } : null,
       };
     }),

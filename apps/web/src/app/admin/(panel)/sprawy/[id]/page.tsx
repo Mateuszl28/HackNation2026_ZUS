@@ -12,6 +12,8 @@ interface Detail {
   recommendation: Recommendation;
   applications: { id: string; title: string; to: string; sentAt: number }[];
   decisions: DecisionDoc[];
+  checks: { level: "ok" | "warning" | "danger"; text: string; doc?: string }[];
+  sla: { days: number; left: number; deadline: string; level: "ok" | "warning" | "danger" } | null;
   documents: { id: string; name: string; fileName?: string; formType?: string; fields?: { label: string; value: string }[]; inResponseTo?: string; at: number }[];
 }
 
@@ -87,6 +89,7 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
           <h1>{name}</h1>
           <p className="text-muted">{c.title.split(" – ")[1]} · {c.input.scenario === "birth" ? "poród" : c.input.scenario === "adoption" ? "adopcja" : "rodzina zastępcza"} {c.input.eventDate} · dzieci: {c.input.children}</p>
         </div>
+        {d.sla && <span className={`chip !py-1.5 ${d.sla.level === "danger" ? "bg-red-100 text-red-800" : d.sla.level === "warning" ? "bg-amber-100 text-amber-800" : "bg-slate-100"}`}>Termin załatwienia: {d.sla.deadline} ({d.sla.left < 0 ? `po terminie ${-d.sla.left} dni` : `zostało ${d.sla.left} dni`})</span>}
         {d.decisions[0] && <span className="chip bg-slate-100 !py-1.5">Ostatnia decyzja: {DECISION_LABELS[d.decisions[0].type]} · {new Date(d.decisions[0].at).toLocaleDateString("pl-PL")} · {d.decisions[0].by}</span>}
       </div>
 
@@ -162,6 +165,21 @@ export default function CaseDetail({ params }: { params: Promise<{ id: string }>
               </ul>
             )}
           </section>
+
+          {d.checks.length > 0 && (
+            <section className="card">
+              <h2 className="mb-3 flex items-center gap-2"><ShieldCheck size={18} /> Kontrola krzyżowa dokumentów</h2>
+              <ul className="space-y-2 text-sm">
+                {d.checks.map((ch, i) => (
+                  <li key={i} className={`flex gap-2 rounded-lg p-2 ${ch.level === "danger" ? "bg-red-50 text-red-900" : ch.level === "warning" ? "bg-amber-50 text-amber-900" : "bg-brand-light/60 text-ink"}`}>
+                    <span className="shrink-0">{ch.level === "ok" ? "✓" : ch.level === "warning" ? "⚠" : "✕"}</span>
+                    <span>{ch.doc && <b>{ch.doc}: </b>}{ch.text}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-muted">Porównanie danych odczytanych z dokumentów z danymi w systemach ZUS (reguły, bez AI).</p>
+            </section>
+          )}
 
           <section className="card overflow-x-auto">
             <h2 className="mb-3">Wyliczenie świadczeń</h2>

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Baby, Bot, Briefcase, Calculator, ChevronDown, ListChecks, Lock, Sparkles, FileText, FolderOpen, HeartHandshake, LayoutDashboard, LogIn, LogOut, Map, MoreHorizontal, X } from "lucide-react";
 import { useSession } from "@/lib/session";
 import A11y from "@/components/A11y";
+import NotificationsBell from "@/components/NotificationsBell";
 import { isProtected } from "@/components/AuthGate";
 
 type Item = { href: string; label: string; desc?: string; icon: typeof Baby };
@@ -107,6 +108,7 @@ export default function Nav() {
 
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
             <span className="hidden xl:block"><A11y /></span>
+            {session.user && <NotificationsBell caseId={session.user.caseId} />}
             {session.user ? (
               <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-1 sm:pr-3">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-white">{initials}</span>

@@ -20,6 +20,7 @@ interface Row {
   decision: { type: DecisionType; at: string; by: string } | null;
   documents: number;
   docsAfterDecision: boolean;
+  sla: { days: number; left: number; deadline: string; level: "ok" | "warning" | "danger" } | null;
 }
 
 const SCEN: Record<string, string> = { birth: "Poród", adoption: "Adopcja", foster: "Rodzina zastępcza" };
@@ -51,7 +52,7 @@ export default function CasesPage() {
     return rows
       .filter((r) => (tab === "all" ? true : statusOf(r).key === tab))
       .filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase()))
-      .sort((a, b) => (b.lastApplicationAt ?? 0) - (a.lastApplicationAt ?? 0));
+      .sort((a, b) => (a.sla?.left ?? 999) - (b.sla?.left ?? 999) || (b.lastApplicationAt ?? 0) - (a.lastApplicationAt ?? 0));
   }, [rows, tab, q]);
   const count = (k: "todo" | "done") => rows?.filter((r) => statusOf(r).key === k).length ?? 0;
 
@@ -77,10 +78,10 @@ export default function CasesPage() {
       <section className="card overflow-x-auto !p-0">
         <table className="w-full min-w-[820px] text-sm">
           <thead className="border-b bg-slate-50 text-left text-xs uppercase tracking-wide text-muted">
-            <tr><th className="px-4 py-3">Osoba</th><th>Sytuacja</th><th>Ubezpieczenie</th><th>Rekomendacja systemu</th><th>Status</th><th className="text-right">Kwota</th><th /></tr>
+            <tr><th className="px-4 py-3">Osoba</th><th>Sytuacja</th><th>Ubezpieczenie</th><th>Rekomendacja systemu</th><th>Status</th><th>Termin (30 dni)</th><th className="text-right">Kwota</th><th /></tr>
           </thead>
           <tbody>
-            {!rows && <tr><td colSpan={7} className="px-4 py-6 text-muted">Ładowanie…</td></tr>}
+            {!rows && <tr><td colSpan={8} className="px-4 py-6 text-muted">Ładowanie…</td></tr>}
             {list.map((r) => {
               const st = statusOf(r);
               return (
@@ -96,12 +97,19 @@ export default function CasesPage() {
                     {r.manualChecks > 0 && <span className="ml-1 inline-flex items-center text-xs text-amber-700" title="Wymaga ręcznej weryfikacji"><AlertTriangle size={13} className="mr-0.5" />weryfikacja</span>}
                   </td>
                   <td><span className={`chip ${st.cls}`}>{st.label}</span>{(r.applications > 0 || r.documents > 0) && <p className="text-xs text-muted">wniosków: {r.applications} · dokumentów: {r.documents}</p>}</td>
+                  <td>
+                    {r.sla && st.key === "todo" ? (
+                      <span className={`chip ${r.sla.level === "danger" ? "bg-red-100 text-red-800" : r.sla.level === "warning" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`} title={`Termin: ${r.sla.deadline}`}>
+                        {r.sla.left < 0 ? `po terminie ${-r.sla.left} dni` : `zostało ${r.sla.left} dni`}
+                      </span>
+                    ) : <span className="text-xs text-muted">–</span>}
+                  </td>
                   <td className="text-right tabular-nums">{r.total ? pln(r.total) : "–"}</td>
                   <td className="pr-4 text-right"><ChevronRight size={16} className="inline text-muted" /></td>
                 </tr>
               );
             })}
-            {rows && !list.length && <tr><td colSpan={7} className="px-4 py-6 text-muted">Brak spraw w tym widoku.</td></tr>}
+            {rows && !list.length && <tr><td colSpan={8} className="px-4 py-6 text-muted">Brak spraw w tym widoku.</td></tr>}
           </tbody>
         </table>
       </section>
