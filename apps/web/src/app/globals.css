@@ -36,3 +36,69 @@ html[data-contrast="high"] body { background: #fff; color: #000; }
 html[data-contrast="high"] .card, html[data-contrast="high"] .input { border-color: #111827 !important; border-width: 2px; }
 html[data-contrast="high"] a:focus-visible, html[data-contrast="high"] button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ===== Tryb ciemny (html[data-theme="dark"]) – przedefiniowanie palety + nadpisania komponentów ===== */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ink: #e6eaee;
+  --color-muted: #9aa6b2;
+  --color-brand-light: #13321f;
+  --color-slate-50: #141e28;
+  --color-slate-100: #1a2531;
+  --color-slate-200: #243241;
+  --color-slate-300: #334457;
+  --color-slate-400: #5b6b7d;
+  --color-slate-500: #8b98a7;
+  --color-slate-600: #a9b4c0;
+  --color-slate-700: #c9d2db;
+  --color-red-50: #331417;
+  --color-red-100: #46181c;
+  --color-red-200: #5e2026;
+  --color-red-300: #7f2a31;
+  --color-red-600: #f87171;
+  --color-red-700: #fb8a8a;
+  --color-red-800: #fca5a5;
+  --color-red-900: #fecaca;
+  --color-amber-50: #2f2309;
+  --color-amber-100: #3d2d0b;
+  --color-amber-200: #57400f;
+  --color-amber-300: #7a5a17;
+  --color-amber-400: #a8791c;
+  --color-amber-700: #fbbf24;
+  --color-amber-800: #fcd34d;
+  --color-amber-900: #fde68a;
+  --color-sky-50: #0d2333;
+  --color-sky-200: #14405d;
+  --color-sky-900: #bae6fd;
+  --color-violet-50: #221a39;
+  --color-violet-100: #2c2149;
+  --color-violet-300: #57409a;
+  --color-violet-700: #c4b5fd;
+  --color-violet-800: #ddd6fe;
+  --color-violet-900: #ede9fe;
+  --color-yellow-50: #2c280c;
+}
+html[data-theme="dark"] body { background: #0b1218; color: var(--color-ink); }
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .bg-white { background-color: #121b24; }
+html[data-theme="dark"] .bg-white\/95,
+html[data-theme="dark"] .bg-white\/90,
+html[data-theme="dark"] .bg-white\/85,
+html[data-theme="dark"] .bg-white\/70 { background-color: rgb(18 27 36 / 0.92); }
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .border-white { border-color: #233140; }
+html[data-theme="dark"] .input { background-color: #0f171f; border-color: #2c3b4b; color: var(--color-ink); }
+html[data-theme="dark"] .btn-ghost { background-color: #16212c; border-color: #2c3b4b; color: var(--color-ink); }
+html[data-theme="dark"] .btn-ghost:hover { background-color: #1d2a37; }
+html[data-theme="dark"] .text-ink { color: var(--color-ink); }
+html[data-theme="dark"] .bg-brand-light\/60,
+html[data-theme="dark"] .bg-brand-light\/50,
+html[data-theme="dark"] .bg-brand-light\/40 { background-color: rgb(19 50 31 / 0.7); }
+html[data-theme="dark"] .shadow-sm,
+html[data-theme="dark"] .shadow-md,
+html[data-theme="dark"] .shadow-xl { --tw-shadow-color: rgb(0 0 0 / 0.5); }
+html[data-theme="dark"] article.font-serif { background-color: #f8fafc; color: #111827; } /* pisma do druku zostają jasne */
+/* białe przyciski na zielonym gradiencie zostają białe */
+html[data-theme="dark"] .bg-gradient-to-br .bg-white { background-color: #ffffff; }
+/* karty wyróżnione kolorem marki zachowują tło */
+html[data-theme="dark"] .card.bg-brand { background-color: var(--color-brand); border-color: var(--color-brand); }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import SiteShell from "@/components/SiteShell";
 import RegisterSW from "@/components/RegisterSW";
+import ThemeScript from "@/components/ThemeScript";
 
 export const metadata: Metadata = {
   title: "Zasiłkowy Przewodnik Przyszłego Rodzica",
@@ -13,8 +14,9 @@ export const viewport: Viewport = { themeColor: "#0b7a3e", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl">
+    <html lang="pl" suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
+        <ThemeScript />
         <RegisterSW />
         <SiteShell>{children}</SiteShell>
       </body>
