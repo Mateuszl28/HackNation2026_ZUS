@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przewodnik Rodzica</title>
+<meta name="description" content="Zasiłkowy Przewodnik Przyszłego Rodzica – kalkulator zasiłków, odczyt dokumentów i panel urzędnika ZUS. Projekt na HackNation 2026.">
+<meta property="og:title" content="Przewodnik Rodzica – HackNation 2026">
+<meta property="og:description" content="Jeden silnik reguł prawa zasiłkowego: serwis dla rodziców, aplikacja mobilna i panel urzędnika ZUS.">
+<meta property="og:image" content="cover.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Układ: zielony nagłówek z tezą, potem sekcje: problem → trzy aplikacje → dokumenty → panel → technologia → uruchomienie */
+:root {
+  --bg: #F5F8F4; --surface: #FCFDFB; --ink: #15241C; --body: #46584E; --line: #D6E3DA;
+  --green: #0B7A3E; --tint: #E2F1E7; --deep: #0D3826; --on-deep: #F1F6F2; --on-deep-muted: #B5D0BF; --mint: #7FD3A2;
+  --font: 'Public Sans', 'Segoe UI', Arial, sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0F1A14; --surface: #16241C; --ink: #E8F1EB; --body: #A9BDB1; --line: #26392E; --green: #5CC88A; --tint: #1B3326; --deep: #0A2C1D; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.6 var(--font); }
+a { color: var(--green); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { line-height: 1.12; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 800; letter-spacing: -0.5px; }
+h3 { font-size: 21px; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); }
+
+/* nagłówek */
+.top { background: var(--deep); color: var(--on-deep); }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; color: var(--on-deep); text-decoration: none; font-size: 18px; display: flex; gap: 10px; align-items: center; }
+.brand span { width: 30px; height: 30px; border-radius: 9px; background: var(--mint); color: var(--deep); display: grid; place-items: center; font-size: 15px; }
+.nav nav { display: flex; gap: 20px; flex-wrap: wrap; }
+.nav nav a { color: var(--on-deep-muted); text-decoration: none; font-size: 15px; font-weight: 600; }
+.nav nav a:hover, .nav nav a:focus-visible { color: var(--on-deep); }
+.hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items: center; padding-block: 48px 72px; }
+.hero .eyebrow { color: var(--mint); }
+.hero h1 { font-size: clamp(42px, 6.5vw, 76px); font-weight: 800; letter-spacing: -2px; margin-top: 14px; }
+.hero .sub { font-size: 21px; color: var(--on-deep-muted); margin-top: 20px; max-width: 34em; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; }
+.btn.primary { background: var(--mint); color: var(--deep); }
+.btn.ghost { border: 2px solid #2E6A4B; color: var(--on-deep); }
+.btn:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+.phones { display: flex; gap: 18px; justify-content: center; }
+.phone { width: 46%; max-width: 230px; border-radius: 26px; border: 6px solid #1E4D35; background: #1E4D35; overflow: hidden; box-shadow: 0 24px 48px rgba(0,0,0,.35); }
+.phone img { display: block; width: 100%; height: auto; }
+.phone:nth-child(2) { transform: translateY(28px); }
+
+/* sekcje */
+section.block { padding-block: 80px; }
+section.block + section.block { border-top: 1px solid var(--line); }
+.head { display: flex; flex-direction: column; gap: 12px; max-width: 760px; margin-bottom: 36px; }
+.head p.lead { font-size: 19px; color: var(--body); }
+.grid { display: grid; gap: 20px; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card p { color: var(--body); font-size: 16.5px; }
+.card .who { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); }
+.card.hl { background: var(--tint); border-color: transparent; }
+ul.ticks { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; }
+ul.ticks li { padding-left: 26px; position: relative; color: var(--body); font-size: 16.5px; }
+ul.ticks li::before { content: ""; position: absolute; left: 4px; top: 0.55em; width: 9px; height: 5px; border-left: 2.5px solid var(--green); border-bottom: 2.5px solid var(--green); transform: rotate(-45deg); }
+
+/* obliczenie krok po kroku */
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow-x: auto; }
+.calc table { width: 100%; border-collapse: collapse; font-size: 16px; min-width: 560px; }
+.calc th, .calc td { text-align: left; padding: 14px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.calc th { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--body); font-weight: 700; }
+.calc td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.calc .f { font-family: var(--mono); font-size: 14px; color: var(--body); display: block; margin-top: 3px; }
+.calc .law { font-size: 13px; color: var(--green); font-weight: 600; display: block; margin-top: 3px; }
+.calc tr:last-child td { border-bottom: none; }
+.calc tfoot td { font-weight: 800; background: var(--tint); }
+
+/* liczby */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.stat { border-top: 3px solid var(--green); padding-top: 14px; }
+.stat b { display: block; font-size: 44px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--body); font-size: 15.5px; }
+
+pre { background: var(--deep); color: var(--on-deep); border-radius: 14px; padding: 20px 22px; overflow-x: auto; font: 14.5px/1.6 var(--mono); margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.chip { font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--tint); color: var(--green); }
+
+footer { background: var(--deep); color: var(--on-deep-muted); padding-block: 36px; font-size: 15px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+footer a { color: var(--on-deep); }
+
+@media (max-width: 880px) {
+  .hero { grid-template-columns: 1fr; padding-block: 28px 56px; }
+  .g3, .g2 { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .nav nav { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="#"><span aria-hidden="true">ZP</span> Przewodnik Rodzica</a>
+    <nav aria-label="Sekcje strony">
+      <a href="#problem">Problem</a>
+      <a href="#rozwiazanie">Rozwiązanie</a>
+      <a href="#dokumenty">Dokumenty</a>
+      <a href="#urzednik">Panel ZUS</a>
+      <a href="#uruchomienie">Uruchomienie</a>
+    </nav>
+  </div>
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow">HackNation 2026 · wyzwanie ZUS</p>
+      <h1>Zasiłkowy Przewodnik Przyszłego Rodzica</h1>
+      <p class="sub">Jeden silnik reguł prawa zasiłkowego dla trzech aplikacji: serwisu www dla rodziców, aplikacji mobilnej i panelu urzędnika ZUS. Rodzic i urzędnik widzą to samo wyliczenie, z przepisem przy każdym kroku.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/Mateuszl28/HackNation2026_ZUS">Kod na GitHubie</a>
+        <a class="btn ghost" href="#uruchomienie">Jak uruchomić</a>
+      </div>
+    </div>
+    <div class="phones">
+      <div class="phone"><img src="img/mobile-kalkulator.png" alt="Aplikacja mobilna: kalkulator z szacowanym zasiłkiem dla rodziny 87 904,50 zł" width="360" height="780"></div>
+      <div class="phone"><img src="img/mobile-ocr.png" alt="Aplikacja mobilna: odczyt zdjęcia zaświadczenia Z-3 – umowa o pracę, 7 100 zł, poród 12.05.2026" width="360" height="780"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="block" id="problem">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Problem</p>
+      <h2>Rodzic gubi się w regułach, urzędnik sprawdza je ręcznie</h2>
+    </div>
+    <div class="grid g3">
+      <div class="card"><h3>Gąszcz zasad</h3><p>20–37 tygodni urlopu macierzyńskiego, 41–43 rodzicielskiego, stawki 100, 81,5 i 70%, 9 tygodni nieprzenoszalnych na każdego z rodziców.</p></div>
+      <div class="card"><h3>Terminy łatwo przegapić</h3><p>Wniosek o 81,5% do 21 dni po porodzie, urlop rodzicielski do końca roku, w którym dziecko kończy 6 lat. Spóźnienie oznacza utracone pieniądze.</p></div>
+      <div class="card"><h3>Dokumenty do ręcznej analizy</h3><p>Z-3, ZAM, poświadczenia, e-ZLA, często jako skany. Urzędnik sam ustala, czy osoba była ubezpieczona w dniu porodu i jaka jest podstawa.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="rozwiazanie">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Rozwiązanie</p>
+      <h2>Jeden silnik reguł, trzy aplikacje</h2>
+      <p class="lead">Reguły zapisaliśmy wprost z ustawy zasiłkowej i Kodeksu pracy. Obliczenia są deterministyczne i nie korzystają z AI, więc ten sam przypadek zawsze daje ten sam wynik.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card hl"><p class="who">Rodzic · www</p><h3>Kalkulator i plan</h3>
+        <ul class="ticks"><li>etat, zlecenie, firma, drugi tytuł ubezpieczenia</li><li>wcześniaki, „Za życiem”, adopcja, L4 w ciąży, utrata pracy</li><li>porównanie wariantów, terminy do kalendarza</li><li>asystent i przewodnik po polsku, ukraińsku i angielsku</li></ul></div>
+      <div class="card hl"><p class="who">Rodzic · telefon</p><h3>Aplikacja mobilna</h3>
+        <ul class="ticks"><li>kalkulator działający offline</li><li>zdjęcie dokumentu → odczyt → dane w kalkulatorze</li><li>plan zapisany w telefonie</li><li>organizacje wsparcia dla rodziców</li></ul></div>
+      <div class="card hl"><p class="who">Urzędnik ZUS</p><h3>Panel spraw</h3>
+        <ul class="ticks"><li>kolejka z terminem 30 dni</li><li>decyzje z rekomendacją i gotowym pismem</li><li>zasada dwóch par oczu przy odmowie</li><li>odwołania i weryfikacja zbiorcza</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="obliczenie">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Jak to policzyliśmy</p>
+      <h2>Każdy krok z działaniem i przepisem</h2>
+      <p class="lead">Przykład z wbudowanej sprawy demonstracyjnej: mama na etacie, 8 500 zł brutto, jeden wniosek o zasiłek za cały okres (81,5%).</p>
+    </div>
+    <div class="calc">
+      <table>
+        <thead><tr><th>Krok</th><th style="text-align:right">Kwota</th></tr></thead>
+        <tbody>
+          <tr><td>Średni przychód brutto z 12 miesięcy<span class="law">art. 36 ust. 1 w zw. z art. 47 ustawy zasiłkowej</span></td><td class="num">8 500,00 zł</td></tr>
+          <tr><td>Odliczenie składek na ubezpieczenia społeczne<span class="f">8 500,00 zł × (1 − 13,71%)</span><span class="law">art. 3 pkt 3 ustawy zasiłkowej</span></td><td class="num">7 334,65 zł</td></tr>
+          <tr><td>Stawka dzienna<span class="f">7 334,65 zł / 30</span><span class="law">art. 36 ust. 3 ustawy zasiłkowej</span></td><td class="num">244,49 zł</td></tr>
+          <tr><td>Urlop macierzyński, 140 dni<span class="f">7 334,65 zł × 81,5% = 5 977,74 zł/mies.; / 30 × 140 dni</span><span class="law">art. 31 ustawy zasiłkowej</span></td><td class="num">27 896,12 zł</td></tr>
+          <tr><td>Urlop rodzicielski mamy, 224 dni<span class="f">5 977,74 zł / 30 × 224 dni</span><span class="law">art. 31 ustawy zasiłkowej</span></td><td class="num">44 633,79 zł</td></tr>
+        </tbody>
+        <tfoot><tr><td>Razem dla mamy (z tatą: 87 904,50 zł)</td><td class="num">72 529,91 zł</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="dokumenty">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Dokumenty</p>
+      <h2>Cały zestaw dokumentów sprawy naraz</h2>
+      <p class="lead">Narzędzie składa Z-3, ZAM, poświadczenie, zrzut z systemu i e-ZLA w jeden profil ubezpieczonej osoby i porównuje swój wynik z rozstrzygnięciem ZUS z zestawu.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card"><h3>Każdy format</h3><p>Warstwa tekstowa PDF, wartości z pól interaktywnych formularzy ZUS i rozpoznawanie tekstu (OCR, język polski) dla skanów i zdjęć. OCR działa lokalnie, bez wysyłania danych na zewnątrz.</p></div>
+      <div class="card"><h3>Ubezpieczenie w dniu porodu</h3><p>Okresy ubezpieczenia z dowolnego dokumentu, podstawa z tabeli miesięcy Z-3, kod „B” na e-ZLA i lista brakujących danych.</p></div>
+      <div class="card"><h3>Zgodność z decyzją ZUS</h3><p>Wynik narzędzia obok rozstrzygnięcia w zestawie: „zgodne” albo „rozbieżność – sprawdź szczegóły”.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="urzednik">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Panel urzędnika</p>
+      <h2>Ile spraw narzędzie rozstrzyga tak jak ZUS?</h2>
+      <p class="lead">Weryfikacja zbiorcza: urzędnik wskazuje folder z podfolderami spraw albo archiwa ZIP i dostaje tabelę z procentem zgodności, filtrem rozbieżności i eksportem do CSV.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>Obsługa sprawy</h3><p>Kolejka z licznikiem 30 dni, sprawdzenia krzyżowe dokumentów, notatki, wezwanie do uzupełnienia, decyzja z obliczeniem krok po kroku, odwołania rozpatrywane w samokontroli.</p></div>
+      <div class="card"><h3>Bezpieczeństwo</h3><p>Logowanie urzędnika i kierownika z podpisaną sesją i limitem prób. Odmowa wymaga zatwierdzenia przez kierownika, zanim zobaczy ją obywatel.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="technologia">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Technologia i jakość</p>
+      <h2>Sprawdzone testami na każdym commicie</h2>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>33</b><span>testy jednostkowe silnika reguł</span></div>
+      <div class="stat"><b>15</b><span>testów całego API (od wniosku do decyzji)</span></div>
+      <div class="stat"><b>8</b><span>wbudowanych spraw demonstracyjnych</span></div>
+      <div class="stat"><b>0</b><span>AI w obliczeniach i decyzjach</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip">TypeScript</span><span class="chip">Next.js 16</span><span class="chip">Expo / React Native</span><span class="chip">Tesseract OCR</span><span class="chip">Docker</span><span class="chip">GitHub Actions</span><span class="chip">PWA</span><span class="chip">tryb ciemny i wysoki kontrast</span>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="uruchomienie">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Uruchomienie</p>
+      <h2>Lokalnie w dwóch poleceniach</h2>
+      <p class="lead">Szczegóły, opis API i dane logowania do panelu urzędnika są w <a href="https://github.com/Mateuszl28/HackNation2026_ZUS#readme">README</a>.</p>
+    </div>
+    <div class="grid g2">
+      <pre><code>git clone https://github.com/Mateuszl28/HackNation2026_ZUS
+cd HackNation2026_ZUS
+npm install
+npm run dev        # http://localhost:3000</code></pre>
+      <pre><code># albo jako kontener
+docker compose up --build
+
+# testy
+npm test           # silnik reguł
+npm run test:api   # całe API</code></pre>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Przewodnik Rodzica · HackNation 2026. Dane w sprawach demonstracyjnych są fikcyjne.</p>
+    <p><a href="https://github.com/Mateuszl28/HackNation2026_ZUS">github.com/Mateuszl28/HackNation2026_ZUS</a></p>
+  </div>
+</footer>
+</body>
+</html>
