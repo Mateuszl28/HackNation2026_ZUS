@@ -19,7 +19,15 @@ export async function POST(req: Request) {
       formFields = out.formFields;
       ocr = out.ocr;
     } else {
-      text = (await req.json()).text ?? "";
+      const body = await req.json();
+      if (typeof body.imageBase64 === "string" && body.imageBase64) {
+        // zdjęcie z aplikacji mobilnej (base64 w JSON – pewniejsze niż multipart w React Native)
+        const buf = new Uint8Array(Buffer.from(body.imageBase64, "base64"));
+        if (buf.length > 8 * 1024 * 1024) return Response.json({ error: "Plik > 8 MB" }, { status: 413 });
+        const out = await fileToText(String(body.name ?? "zdjecie.jpg"), buf);
+        text = out.text;
+        ocr = out.ocr;
+      } else text = body.text ?? "";
     }
     const parsed = parseDocumentText(text);
     if (ocr) parsed.warnings.unshift(`Tekst rozpoznany przez OCR (${ocr.pages} str., pewność ${ocr.confidence}%) – sprawdź odczytane wartości.`);

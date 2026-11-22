@@ -9,3 +9,4 @@ apps/web/data/params.json
 # Dokumenty przykładowe ZUS – nie wolno ich rozpowszechniać
 dokumenty-zus/
 docs/*.apk
+docs/*.mp4

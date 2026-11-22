@@ -16,19 +16,19 @@ export function ScanCard({ onApply }: { onApply: (p: { mother: Partial<ParentInp
     tap();
     const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) return setRes({ error: 'Brak zgody na dostęp do ' + (camera ? 'aparatu.' : 'zdjęć.') });
-    const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.85 };
+    const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.7, base64: true };
     const r = camera ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
     if (r.canceled || !r.assets?.[0]) return;
+    if (!r.assets[0].base64) return setRes({ error: 'Nie udało się wczytać zdjęcia.' });
     const a = r.assets[0];
     setUri(a.uri);
     setRes(null);
     setBusy(true);
     try {
-      const fd = new FormData();
-      fd.append('file', { uri: a.uri, name: a.fileName ?? 'dokument.jpg', type: a.mimeType ?? 'image/jpeg' } as unknown as Blob);
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 120_000);
-      const j = (await fetch(`${API_URL}/api/parse`, { method: 'POST', body: fd, signal: ctrl.signal }).then((x) => x.json())) as Parsed;
+      const name = a.fileName ?? (a.mimeType === 'image/png' ? 'dokument.png' : 'dokument.jpg');
+      const j = (await fetch(`${API_URL}/api/parse`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ imageBase64: a.base64, name }), signal: ctrl.signal }).then((x) => x.json())) as Parsed;
       clearTimeout(t);
       setRes(j);
     } catch {
